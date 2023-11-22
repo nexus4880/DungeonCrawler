@@ -1,0 +1,9 @@
+.idea
+DungeonCrawler.Client/bin
+DungeonCrawler.Client/obj
+
+DungeonCrawler.Core/bin
+DungeonCrawler.Core/obj
+
+DungeonCrawler.Server/bin
+DungeonCrawler.Server/obj
