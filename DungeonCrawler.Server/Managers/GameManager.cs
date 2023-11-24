@@ -1,15 +1,18 @@
-﻿using System.Diagnostics;
+﻿using System.Numerics;
+using DungeonCrawler.Core.Extensions;
+using DungeonCrawler.Core.Items;
 using LiteNetLib;
 
 namespace DungeonCrawler.Server.Managers;
 
 public class GameManager {
-	private Stopwatch _gameTimer = Stopwatch.StartNew();
 	private Dictionary<Int32, PlayerController> _playerControllers = new Dictionary<Int32, PlayerController>();
 
 	public GameManager(GameServer server) {
 		this.Server = server;
 	}
+
+	public ItemManager ItemManager { get; } = new ItemManager();
 
 	public GameServer Server { get; }
 
@@ -23,8 +26,7 @@ public class GameManager {
 		return this._playerControllers.GetValueOrDefault(id);
 	}
 
-	public void Update() {
-		Single deltaTime = (Single)this._gameTimer.Elapsed.TotalMilliseconds;
+	public void Update(Single deltaTime) {
 		foreach (PlayerController controller in this._playerControllers.Values) {
 			controller.Update(deltaTime);
 		}
@@ -44,6 +46,12 @@ public class GameManager {
 		if (!this._playerControllers.TryAdd(peer.Id, controller)) {
 			return null;
 		}
+
+		controller.position = Random.Shared.NextVector2(Vector2.Zero, new Vector2(1280f, 720f));
+		controller.health = 100f;
+		controller.items.Add(this.ItemManager.CreateItem<HealthPotion>(1000f, 15f));
+		controller.items.Add(this.ItemManager.CreateItem<SpeedPotion>());
+		controller.items.Add(this.ItemManager.CreateItem<InstantHealthPotion>());
 
 		return controller;
 	}
