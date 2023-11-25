@@ -1,10 +1,14 @@
-﻿using LiteNetLib.Utils;
+﻿using System.Collections;
+using DungeonCrawler.Core.Extensions;
+using LiteNetLib.Utils;
 
 namespace DungeonCrawler.Core.Items;
 
 public class SpeedPotion : Item {
 	public Single Duration { get; set; } = 15f;
 	public Single Multiplier { get; set; } = 2f;
+
+	public override String Name { get; set; } = "Potion of Speed";
 
 	public override void Serialize(NetDataWriter writer) {
 		base.Serialize(writer);
@@ -16,5 +20,10 @@ public class SpeedPotion : Item {
 		base.Deserialize(reader);
 		this.Duration = reader.GetFloat();
 		this.Multiplier = reader.GetFloat();
+	}
+
+	public override void Initialize(Stack properties) {
+		this.Duration = properties.PopValue(15f);
+		this.Multiplier = properties.PopValue(1.5f);
 	}
 }

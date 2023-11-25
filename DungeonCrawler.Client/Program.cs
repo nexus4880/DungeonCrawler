@@ -25,6 +25,7 @@ internal class Program {
 		Program.PacketProcessor.SubscribeReusable<PlayerJoinedPacket>(Program.OnPlayerJoined);
 		Program.PacketProcessor.SubscribeReusable<PlayerMovedPacket>(Program.OnPlayerMoved);
 		Program.PacketProcessor.SubscribeReusable<UpdateHealthPacket>(Program.OnUpdateHealth);
+		Program.PacketProcessor.SubscribeReusable<RemoveItemPacket>(Program.OnRemoveItem);
 
 		ItemSerializationHandler.Initialize();
 
@@ -64,8 +65,19 @@ internal class Program {
 		CloseWindow();
 	}
 
+	private static void OnRemoveItem(RemoveItemPacket packet) {
+		PlayerController ownerController = Program._controllers.Values.FirstOrDefault(controller =>
+			controller.items.Any(item => item.Id == packet.ItemId));
+		if (ownerController is not null) {
+			Int32 index = ownerController.items.FindIndex(item => item.Id == packet.ItemId);
+			if (index != -1) {
+				ownerController.items.RemoveAt(index);
+			}
+		}
+	}
+
 	private static void OnUpdateHealth(UpdateHealthPacket packet) {
-		if (Program._controllers.TryGetValue(packet.Id, out var controller)) {
+		if (Program._controllers.TryGetValue(packet.Id, out PlayerController controller)) {
 			controller.health = packet.Health;
 		}
 	}
@@ -100,7 +112,7 @@ internal class Program {
 	private static void OnPlayerJoined(PlayerJoinedPacket packet) {
 		Console.WriteLine("Player joined");
 		Program._controllers[packet.PlayerData.id] = new PlayerController {
-			position = packet.PlayerData.position, items = packet.PlayerData.items, health = packet.PlayerData.health
+			position = packet.PlayerData.position, radius = packet.PlayerData.radius, items = packet.PlayerData.items, health = packet.PlayerData.health
 		};
 	}
 
@@ -117,6 +129,7 @@ internal class Program {
 			controller.health = playerData.health;
 			controller.position = playerData.position;
 			controller.items = playerData.items;
+			controller.radius = playerData.radius;
 			Program._controllers[playerData.id] = controller;
 		}
 	}

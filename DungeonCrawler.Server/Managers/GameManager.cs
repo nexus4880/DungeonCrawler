@@ -10,9 +10,10 @@ public class GameManager {
 
 	public GameManager(GameServer server) {
 		this.Server = server;
+		this.ItemManager = new ItemManager(this);
 	}
 
-	public ItemManager ItemManager { get; } = new ItemManager();
+	public ItemManager ItemManager { get; }
 
 	public GameServer Server { get; }
 
@@ -49,7 +50,8 @@ public class GameManager {
 
 		controller.position = Random.Shared.NextVector2(Vector2.Zero, new Vector2(1280f, 720f));
 		controller.health = 100f;
-		controller.items.Add(this.ItemManager.CreateItem<HealthPotion>(1000f, 15f));
+		controller.radius = Random.Shared.NextSingleValue(8f, 16f);
+		controller.items.Add(this.ItemManager.CreateItem<HealthPotion>());
 		controller.items.Add(this.ItemManager.CreateItem<SpeedPotion>());
 		controller.items.Add(this.ItemManager.CreateItem<InstantHealthPotion>());
 

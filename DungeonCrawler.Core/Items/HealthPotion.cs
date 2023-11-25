@@ -1,10 +1,14 @@
-﻿using LiteNetLib.Utils;
+﻿using System.Collections;
+using DungeonCrawler.Core.Extensions;
+using LiteNetLib.Utils;
 
 namespace DungeonCrawler.Core.Items;
 
 public class HealthPotion : Item {
 	public Single Amount { get; set; } = 100f;
 	public Single Duration { get; set; } = 3f;
+
+	public override String Name { get; set; } = "Potion of Healing";
 
 	public override void Serialize(NetDataWriter writer) {
 		base.Serialize(writer);
@@ -18,8 +22,8 @@ public class HealthPotion : Item {
 		this.Duration = reader.GetFloat();
 	}
 
-	public override void Initialize(params Object[] properties) {
-		this.Amount = (Single)properties[0];
-		this.Duration = (Single)properties[1];
+	public override void Initialize(Stack properties) {
+		this.Amount = properties.PopValue(100f);
+		this.Duration = properties.PopValue(3f);
 	}
 }

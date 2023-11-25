@@ -9,23 +9,26 @@ using LiteNetLib.Utils;
 
 namespace DungeonCrawler.Server;
 
-public class PlayerController {
+public class PlayerController : IInventoryOwner {
 	private readonly GameManager _gameManager;
 	public readonly List<Item> items;
 	private List<IPlayerComponent> _components;
+	private Inventory _inventory;
 	public Single baseMovementSpeed = 100f;
 	public Single health;
 	public PlayerInputs inputs;
 	public Vector2 position;
+	public Single radius;
 
 	public PlayerController(NetPeer peer, GameManager gameManager) {
 		this._gameManager = gameManager;
 		this.Peer = peer;
 		this.items = new List<Item>();
 		this._components = new List<IPlayerComponent>();
+		this._inventory = new Inventory(this);
 	}
 
-	public Single MovmentSpeed {
+	public Single MovementSpeed {
 		get {
 			Single result = this.baseMovementSpeed;
 			MovementSpeedBuffComponent movementSpeedBuffComponent = this.GetComponent<MovementSpeedBuffComponent>();
@@ -38,6 +41,10 @@ public class PlayerController {
 	}
 
 	public NetPeer Peer { get; set; }
+
+	public Inventory GetInventory() {
+		return this._inventory;
+	}
 
 	public T GetComponent<T>() where T : class, IPlayerComponent {
 		return this._components.FirstOrDefault(component => component is T) as T;
@@ -89,7 +96,23 @@ public class PlayerController {
 		}
 
 		if (h != 0f || v != 0f) {
-			this.position += new Vector2(h, v) * (this.MovmentSpeed * deltaTime);
+			Single movementSpeed = this.MovementSpeed * deltaTime;
+			Single targetX = this.position.X + h * movementSpeed;
+			if (targetX < 0f) {
+				targetX = 0f;
+			}
+
+
+			Single targetY = this.position.Y + v * movementSpeed;
+			if (targetY < 0f) {
+				targetY = 0f;
+			}
+
+			if (targetY == 0f && targetX == 0f) {
+				return;
+			}
+
+			this.position = new Vector2(targetX, targetY);
 			NetDataWriter writer = new NetDataWriter();
 			this._gameManager.Server.PacketProcessor.Write(writer, new PlayerMovedPacket {
 				Id = this.Peer.Id,
@@ -108,7 +131,8 @@ public class PlayerController {
 			id = this.Peer.Id,
 			health = this.health,
 			position = this.position,
-			items = this.items
+			items = this.items,
+			radius = this.radius
 		};
 	}
 
@@ -127,6 +151,7 @@ public class PlayerController {
 
 		Item usedItem = this.items[usedItemIndex];
 		this.items.RemoveAt(usedItemIndex);
+		this._gameManager.ItemManager.RemoveItem(id);
 		switch (usedItem) {
 			case HealthPotion healthPotion: {
 				this.AddComponent(new GainHealthComponent(healthPotion.Amount, healthPotion.Duration));
