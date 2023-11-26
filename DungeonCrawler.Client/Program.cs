@@ -123,7 +123,7 @@ internal class Program {
 	private static void OnInitializeWorld(InitializeWorldPacket packet) {
 		foreach (PlayerData playerData in packet.Players) {
 			Console.WriteLine(playerData);
-			PlayerController controller = playerData.id == Program.LocalPeer.Id
+			PlayerController controller = playerData.id == Program.LocalPeer.RemoteId
 				? new LocalPlayerController()
 				: new PlayerController();
 			controller.health = playerData.health;
