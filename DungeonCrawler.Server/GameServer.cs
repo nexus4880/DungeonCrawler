@@ -1,5 +1,9 @@
 ﻿using System.Net;
+using DungeonCrawler.Core;
 using DungeonCrawler.Core.Extensions;
+using DungeonCrawler.Core.Handlers;
+using DungeonCrawler.Core.Packets;
+using DungeonCrawler.Server.Entities;
 using DungeonCrawler.Server.Managers;
 using LiteNetLib;
 using LiteNetLib.Utils;
@@ -13,6 +17,9 @@ public static class GameServer {
 
 	public static void Initialize(IPAddress ipv4, IPAddress ipv6, Int32 port) {
 		GameServer.PacketProcessor.Initialize();
+		GameServer.EventBasedNetListener.NetworkReceiveEvent += GameServer.OnNetworkReceive;
+		GameServer.EventBasedNetListener.ConnectionRequestEvent += GameServer.OnConnectionRequest;
+		GameServer.EventBasedNetListener.PeerConnectedEvent += GameServer.OnPeerConnected;
 		GameServer.NetManager = new NetManager(GameServer.EventBasedNetListener);
 		String ip = $"{ipv4}:{port}";
 		if (!GameServer.NetManager.Start(ipv4, ipv6, port)) {
@@ -22,11 +29,50 @@ public static class GameServer {
 		Console.WriteLine($"Started server on {ip}");
 	}
 
-	public static void Update(Single deltaTime) {
+    private static void OnPeerConnected(NetPeer peer) {
+    }
+
+    private static void OnConnectionRequest(ConnectionRequest request) {
+		NetPeer peer = request.AcceptIfKey("DungeonCrawler");
+		if (peer is null) {
+			return;
+		}
+		
+		InitializeWorldPacket initializeWorldPacket = new InitializeWorldPacket();
+		NetDataWriter writer = new NetDataWriter();
+		Dictionary<Guid, Entity>.ValueCollection entities = GameManager.EntityList.Values;
+		writer.Put(entities.Count);
+		foreach (Entity entity in entities) {
+			writer.Put(entity);
+		}
+
+		Dictionary<Guid, DroppedLootItem>.ValueCollection lootItems = GameManager.LootItems.Values;
+		writer.Put(lootItems.Count);
+		foreach (DroppedLootItem lootItem in lootItems) {
+			writer.Put(lootItem);
+		}
+
+		GameServer.PacketProcessor.Write(writer, initializeWorldPacket);
+		peer.Send(writer, DeliveryMethod.ReliableOrdered);
+
+		GameManager.CreateEntity<PlayerEntity>(peer);
+    }
+
+    private static void OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channel, DeliveryMethod deliveryMethod) {
+		try {
+			GameServer.PacketProcessor.ReadAllPackets(reader);
+		}
+		catch (ParseException) {
+			Console.WriteLine($"[OnNetworkReceive] {peer.EndPoint} ({peer.Id}) sent a packet we don't understand");
+		}
+    }
+
+    public static void Update(Single deltaTime) {
 		GameServer.NetManager.PollEvents();
 		GameManager.Update(deltaTime);
 	}
 
 	public static void Shutdown() {
+		GameServer.NetManager.Stop(true);
 	}
 }

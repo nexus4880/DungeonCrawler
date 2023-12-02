@@ -12,10 +12,12 @@ public abstract class Entity : IInventoryOwner, INetSerializable {
 
 	public Vector2 position;
 
-	public Guid EntityId { get; init; }
+	public Guid EntityId { get; set; }
+
+	protected Inventory _inventory;
 
 	public virtual Inventory GetInventory() {
-		return null;
+		return _inventory;
 	}
 
 	public abstract void Update(Single deltaTime);
@@ -36,6 +38,9 @@ public abstract class Entity : IInventoryOwner, INetSerializable {
 		return component;
 	}
 
+	public virtual void Initialize(Stack properties) {
+	}
+
 	public virtual void OnDestroy() {
 	}
 
@@ -52,5 +57,11 @@ public abstract class Entity : IInventoryOwner, INetSerializable {
 	}
 
 	public void Deserialize(NetDataReader reader) {
+		this.EntityId = reader.GetGuid();
+		this.position = reader.GetVector2();
+		Boolean hasInventory = reader.GetBool();
+		if (hasInventory) {
+			this._inventory = reader.Get<Inventory>(() => new Inventory(this));
+		}
 	}
 }

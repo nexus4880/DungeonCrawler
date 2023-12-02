@@ -69,7 +69,12 @@ public class Inventory : INetSerializable {
 		}
 	}
 
-	public Boolean AddItem(Item item, Int32 count) {
-		return false;
+	public Boolean AddItem(Item item) {
+		if (_hotbar is null) return false;
+		if (_hotbar[0] is null or {Count: 0}) return false;
+
+		_hotbar[0].Add(item);
+		
+		return true;
 	}
 }

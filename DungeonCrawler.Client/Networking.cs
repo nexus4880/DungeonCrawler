@@ -1,4 +1,6 @@
-﻿using DungeonCrawler.Core.Extensions;
+﻿using DungeonCrawler.Core;
+using DungeonCrawler.Core.Extensions;
+using DungeonCrawler.Core.Packets;
 using LiteNetLib;
 using LiteNetLib.Utils;
 
@@ -14,12 +16,29 @@ public static class Networking {
 	public static void Initialize() {
 		Networking.PacketProcessor = new NetPacketProcessor();
 		Networking.PacketProcessor.Initialize();
+		Networking.Subscribe<InitializeWorldPacket>(Networking.OnInitializeWorld);
 		Networking.EventBasedNetListener = new EventBasedNetListener();
 		Networking.EventBasedNetListener.NetworkReceiveEvent += Networking.OnNetworkReceive;
 		Networking.NetManager = new NetManager(Networking.EventBasedNetListener);
 	}
 
-	public static void Update() {
+    private static void OnInitializeWorld(InitializeWorldPacket packet, UserPacketEventArgs args)
+    {
+		NetDataReader reader = args.PacketReader;
+		Int32 entityCount = reader.GetInt();
+		List<Object> entities = new List<object>(entityCount);
+		for (int i = 0; i < entityCount; i++) {
+			Object readEntity = reader.GetEntity();
+			if (readEntity is null) {
+				throw new Exception("Failed to read Entity");
+			}
+
+			entities.Add(readEntity);
+		}
+
+    }
+
+    public static void Update() {
 		Networking.NetManager.PollEvents();
 		if (Networking.Writer.Length > 0) {
 			Networking.LocalPeer.Send(Networking.Writer, DeliveryMethod.Unreliable);
@@ -40,12 +59,5 @@ public static class Networking {
 		}
 		catch (ParseException) {
 		}
-	}
-
-	public record UserPacketEventArgs(
-		NetPeer Peer,
-		NetPacketReader PacketReader,
-		Byte Channel,
-		DeliveryMethod DeliveryMethod) {
 	}
 }

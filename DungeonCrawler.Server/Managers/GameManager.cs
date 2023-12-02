@@ -1,4 +1,5 @@
-﻿using DungeonCrawler.Core;
+﻿using System.Collections;
+using DungeonCrawler.Core;
 using DungeonCrawler.Server.Entities;
 
 namespace DungeonCrawler.Server.Managers;
@@ -17,7 +18,7 @@ public static class GameManager {
 		}
 	}
 
-	public static T CreateEntity<T>() where T : Entity, new() {
+	public static T CreateEntity<T>(params Object[] properties) where T : Entity, new() {
 		Guid entityId;
 		do {
 			entityId = Guid.NewGuid();
@@ -25,6 +26,7 @@ public static class GameManager {
 
 		T entity = new T { EntityId = entityId };
 		GameManager.EntityList[entityId] = entity;
+		entity.Initialize(new Stack(properties));
 
 		return entity;
 	}

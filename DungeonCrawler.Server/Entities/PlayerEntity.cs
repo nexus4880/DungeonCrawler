@@ -1,5 +1,7 @@
-﻿using System.Numerics;
+﻿using System.Collections;
+using System.Numerics;
 using DungeonCrawler.Core;
+using DungeonCrawler.Core.Extensions;
 using DungeonCrawler.Core.Packets;
 using DungeonCrawler.Server.EntityComponents;
 using LiteNetLib;
@@ -58,7 +60,7 @@ public class PlayerEntity : Entity {
 		}
 	}
 
-	public PlayerData GetPlayerData() {
-		return new PlayerData();
-	}
+    public override void Initialize(Stack properties) {
+		this.NetPeer = properties.PopValueOrThrow<NetPeer>();
+    }
 }

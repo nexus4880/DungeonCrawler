@@ -6,6 +6,12 @@ using LiteNetLib.Utils;
 namespace DungeonCrawler.Core.Extensions;
 
 public static class NetDataReaderExtensions {
+	public static Object GetEntity(this NetDataReader reader) {
+		UInt64 hash = reader.GetULong();
+		Type type = null;// GetItem uses ItemSerializationHandler, we should definitely just have 1 large dictionary... will do at PC...
+		return null;
+	}
+
 	public static Item GetItem(this NetDataReader reader) {
 		UInt64 hash = reader.GetULong();
 		Type type = ItemSerializationHandler.GetTypeByHash(hash);
