@@ -10,14 +10,14 @@ Stopwatch frameTimer = Stopwatch.StartNew();
 
 Boolean isRunning = true;
 Console.CancelKeyPress += (_, __) => isRunning = false;
-GameServer server = new GameServer(IPAddress.Any, IPAddress.IPv6Any, 8278);
+GameServer.Initialize(IPAddress.Any, IPAddress.IPv6Any, 8278);
 ItemSerializationHandler.Initialize();
 while (isRunning) {
 	Single deltaTime = (Single)frameTimer.Elapsed.TotalSeconds;
 	frameTimer.Restart();
-	server.Update(deltaTime);
+	GameServer.Update(deltaTime);
 	while (frameTimer.Elapsed.TotalSeconds < TARGET_FRAME_TIME) {
 	}
 }
 
-server.Shutdown();
+GameServer.Shutdown();

@@ -7,5 +7,6 @@ public static class NetPacketProcessorExtensions {
 		packetProcessor.RegisterNestedType((writer, value) => writer.Put(value), reader => reader.GetGuid());
 		packetProcessor.RegisterNestedType<PlayerData>();
 		packetProcessor.RegisterNestedType<PlayerInputs>();
+		packetProcessor.RegisterNestedType<DroppedLootItem>();
 	}
 }

@@ -10,4 +10,12 @@ public static class StackExtensions {
 
 		return (T)stack.Pop();
 	}
+
+	public static T PopValueOrThrow<T>(this Stack stack) {
+		if (stack.Count == 0) {
+			throw new Exception($"Expected {typeof(T)} in empty stack");
+		}
+
+		return (T)stack.Pop();
+	}
 }

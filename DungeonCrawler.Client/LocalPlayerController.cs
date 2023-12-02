@@ -1,7 +1,4 @@
 ﻿using DungeonCrawler.Core;
-using DungeonCrawler.Core.Packets;
-using LiteNetLib;
-using LiteNetLib.Utils;
 using Raylib_CsLo;
 
 namespace DungeonCrawler.Client;
@@ -20,12 +17,5 @@ public class LocalPlayerController : PlayerController {
 			MoveLeft = IsKeyDown(KeyboardKey.KEY_A),
 			MoveRight = IsKeyDown(KeyboardKey.KEY_D)
 		};
-
-		if (currentInputs != this._inputs) {
-			NetDataWriter writer = new NetDataWriter();
-			Program.PacketProcessor.Write(writer, new SetInputsPacket { Inputs = currentInputs });
-			Program.LocalPeer.Send(writer, DeliveryMethod.ReliableOrdered);
-			this._inputs = currentInputs;
-		}
 	}
 }
