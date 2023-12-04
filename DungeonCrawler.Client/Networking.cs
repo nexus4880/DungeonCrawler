@@ -22,23 +22,11 @@ public static class Networking {
 		Networking.NetManager = new NetManager(Networking.EventBasedNetListener);
 	}
 
-    private static void OnInitializeWorld(InitializeWorldPacket packet, UserPacketEventArgs args)
-    {
-		NetDataReader reader = args.PacketReader;
-		Int32 entityCount = reader.GetInt();
-		List<Object> entities = new List<object>(entityCount);
-		for (int i = 0; i < entityCount; i++) {
-			Object readEntity = reader.GetEntity();
-			if (readEntity is null) {
-				throw new Exception("Failed to read Entity");
-			}
+	private static void OnInitializeWorld(InitializeWorldPacket packet, UserPacketEventArgs args) {
+		Console.WriteLine("[OnInitializeWorld]");
+	}
 
-			entities.Add(readEntity);
-		}
-
-    }
-
-    public static void Update() {
+	public static void Update() {
 		Networking.NetManager.PollEvents();
 		if (Networking.Writer.Length > 0) {
 			Networking.LocalPeer.Send(Networking.Writer, DeliveryMethod.Unreliable);

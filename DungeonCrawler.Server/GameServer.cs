@@ -1,7 +1,6 @@
 ﻿using System.Net;
 using DungeonCrawler.Core;
 using DungeonCrawler.Core.Extensions;
-using DungeonCrawler.Core.Handlers;
 using DungeonCrawler.Core.Packets;
 using DungeonCrawler.Server.Entities;
 using DungeonCrawler.Server.Managers;
@@ -20,6 +19,7 @@ public static class GameServer {
 		GameServer.EventBasedNetListener.NetworkReceiveEvent += GameServer.OnNetworkReceive;
 		GameServer.EventBasedNetListener.ConnectionRequestEvent += GameServer.OnConnectionRequest;
 		GameServer.EventBasedNetListener.PeerConnectedEvent += GameServer.OnPeerConnected;
+		GameServer.EventBasedNetListener.PeerDisconnectedEvent += GameServer.OnPeerDisonnected;
 		GameServer.NetManager = new NetManager(GameServer.EventBasedNetListener);
 		String ip = $"{ipv4}:{port}";
 		if (!GameServer.NetManager.Start(ipv4, ipv6, port)) {
@@ -29,15 +29,21 @@ public static class GameServer {
 		Console.WriteLine($"Started server on {ip}");
 	}
 
-    private static void OnPeerConnected(NetPeer peer) {
-    }
+	private static void OnPeerDisonnected(NetPeer peer, DisconnectInfo disconnectinfo) {
+		Console.WriteLine("[OnPeerDisonnected]");
+	}
 
-    private static void OnConnectionRequest(ConnectionRequest request) {
+	private static void OnPeerConnected(NetPeer peer) {
+		Console.WriteLine("[OnPeerConnected]");
+	}
+
+	private static void OnConnectionRequest(ConnectionRequest request) {
+		Console.WriteLine("[OnConnectionRequest]");
 		NetPeer peer = request.AcceptIfKey("DungeonCrawler");
 		if (peer is null) {
 			return;
 		}
-		
+
 		InitializeWorldPacket initializeWorldPacket = new InitializeWorldPacket();
 		NetDataWriter writer = new NetDataWriter();
 		Dictionary<Guid, Entity>.ValueCollection entities = GameManager.EntityList.Values;
@@ -56,18 +62,19 @@ public static class GameServer {
 		peer.Send(writer, DeliveryMethod.ReliableOrdered);
 
 		GameManager.CreateEntity<PlayerEntity>(peer);
-    }
+	}
 
-    private static void OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channel, DeliveryMethod deliveryMethod) {
+	private static void OnNetworkReceive(NetPeer peer, NetPacketReader reader, Byte channel,
+		DeliveryMethod deliveryMethod) {
 		try {
 			GameServer.PacketProcessor.ReadAllPackets(reader);
 		}
 		catch (ParseException) {
 			Console.WriteLine($"[OnNetworkReceive] {peer.EndPoint} ({peer.Id}) sent a packet we don't understand");
 		}
-    }
+	}
 
-    public static void Update(Single deltaTime) {
+	public static void Update(Single deltaTime) {
 		GameServer.NetManager.PollEvents();
 		GameManager.Update(deltaTime);
 	}

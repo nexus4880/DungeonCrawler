@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Net;
-using DungeonCrawler.Core.Handlers;
+using DungeonCrawler.Core;
+using DungeonCrawler.Core.Items;
 using DungeonCrawler.Server;
 
 const Int32 TARGET_FRAME_RATE = 240;
@@ -10,7 +11,8 @@ Stopwatch frameTimer = Stopwatch.StartNew();
 
 Boolean isRunning = true;
 Console.CancelKeyPress += (_, __) => isRunning = false;
-ItemSerializationHandler.Initialize();
+Int32 itemsRegistered = LNHashCache.RegisterAllOfType<Item>();
+Console.WriteLine($"Registered {itemsRegistered} item types");
 GameServer.Initialize(IPAddress.Any, IPAddress.IPv6Any, 8278);
 while (isRunning) {
 	Single deltaTime = (Single)frameTimer.Elapsed.TotalSeconds;

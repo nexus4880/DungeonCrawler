@@ -1,10 +1,11 @@
 ﻿using System.Net;
 using DungeonCrawler.Client;
-using DungeonCrawler.Core.Handlers;
+using DungeonCrawler.Core;
+using DungeonCrawler.Core.Items;
 using LiteNetLib;
 
 Networking.Initialize();
-ItemSerializationHandler.Initialize();
+LNHashCache.RegisterAllOfType<Item>();
 if (!Networking.NetManager.Start()) {
 	throw new Exception("Failed to start NetManager");
 }

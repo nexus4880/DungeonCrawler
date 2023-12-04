@@ -1,26 +1,40 @@
 ﻿using System.Collections;
 using System.Numerics;
-using DungeonCrawler.Core;
+using DungeonCrawler.Core.Entities;
 using DungeonCrawler.Core.Extensions;
 using DungeonCrawler.Server.EntityComponents;
 using LiteNetLib.Utils;
 
 namespace DungeonCrawler.Server.Entities;
 
-public abstract class Entity : IInventoryOwner, INetSerializable {
+public class Entity : IEntity {
 	private List<IEntityComponent> _entityComponents = [];
 
-	public Vector2 position;
-
-	public Guid EntityId { get; set; }
-
-	protected Inventory _inventory;
-
-	public virtual Inventory GetInventory() {
-		return _inventory;
+	public virtual void Serialize(NetDataWriter writer) {
+		writer.Put(this.EntityId);
+		writer.Put(this.Position);
+		writer.Put((Byte)this._entityComponents.Count);
+		foreach (IEntityComponent entityComponent in this._entityComponents) {
+			writer.PutDeserializable(entityComponent);
+		}
 	}
 
-	public abstract void Update(Single deltaTime);
+	public virtual void Deserialize(NetDataReader reader) {
+		this.EntityId = reader.GetGuid();
+		this.Position = reader.GetVector2();
+	}
+
+	public Guid EntityId { get; set; }
+	public Vector2 Position { get; set; }
+
+	public virtual void Update(Single deltaTime) {
+	}
+
+	public virtual void Initialize(Stack properties) {
+	}
+
+	public virtual void OnDestroy() {
+	}
 
 	public T GetComponent<T>() where T : class, IEntityComponent {
 		return this._entityComponents.FirstOrDefault(comp => comp is T) as T;
@@ -36,32 +50,5 @@ public abstract class Entity : IInventoryOwner, INetSerializable {
 		this._entityComponents.Add(component);
 
 		return component;
-	}
-
-	public virtual void Initialize(Stack properties) {
-	}
-
-	public virtual void OnDestroy() {
-	}
-
-	public void Serialize(NetDataWriter writer) {
-		writer.Put(LNHashCache.GetHash(this.GetType()));
-		writer.Put(this.EntityId);
-		writer.Put(this.position);
-		Inventory inventory = this.GetInventory();
-		Boolean hasInventory = inventory is not null;
-		writer.Put(hasInventory);
-		if (hasInventory) {
-			writer.Put(inventory);
-		}
-	}
-
-	public void Deserialize(NetDataReader reader) {
-		this.EntityId = reader.GetGuid();
-		this.position = reader.GetVector2();
-		Boolean hasInventory = reader.GetBool();
-		if (hasInventory) {
-			this._inventory = reader.Get<Inventory>(() => new Inventory(this));
-		}
 	}
 }
