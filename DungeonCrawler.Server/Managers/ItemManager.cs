@@ -6,31 +6,31 @@ using LiteNetLib.Utils;
 
 namespace DungeonCrawler.Server.Managers;
 
-public class ItemManager {
-	private GameManager _gameManager;
-	private Dictionary<Guid, Item> _items = new Dictionary<Guid, Item>();
+public static class ItemManager {
+	private static Dictionary<Guid, Item> _items = new Dictionary<Guid, Item>();
 
-	public ItemManager(GameManager gameManager) {
-		this._gameManager = gameManager;
+	public static T CreateItem<T>(params Object[] properties) where T : Item, new() {
+		return (T)ItemManager.CreateItem(typeof(T), properties);
 	}
 
-	public T CreateItem<T>(params Object[] properties) where T : Item, new() {
-		T item = new T { Id = Guid.NewGuid() };
-		this._items[item.Id] = item;
+	public static Item CreateItem(Type itemType, params Object[] properties) {
+		Item item = (Item)Activator.CreateInstance(itemType)!;
+		item.Id = Guid.NewGuid();
+		ItemManager._items[item.Id] = item;
 		item.Initialize(new Stack(properties));
 
 		return item;
 	}
 
-	public Boolean ItemExists(Guid id) {
-		return this._items.ContainsKey(id);
+	public static Boolean ItemExists(Guid id) {
+		return ItemManager._items.ContainsKey(id);
 	}
 
-	public void RemoveItem(Guid id) {
-		if (this._items.Remove(id)) {
+	public static void RemoveItem(Guid id) {
+		if (ItemManager._items.Remove(id)) {
 			NetDataWriter writer = new NetDataWriter();
-			this._gameManager.Server.PacketProcessor.Write(writer, new RemoveItemPacket { ItemId = id });
-			this._gameManager.Server.NetManager.SendToAll(writer, DeliveryMethod.ReliableOrdered);
+			GameServer.PacketProcessor.Write(writer, new RemoveItemPacket { ItemId = id });
+			GameServer.NetManager.SendToAll(writer, DeliveryMethod.ReliableOrdered);
 		}
 	}
 }
