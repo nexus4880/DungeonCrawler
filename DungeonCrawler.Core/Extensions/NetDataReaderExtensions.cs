@@ -4,22 +4,32 @@ using LiteNetLib.Utils;
 
 namespace DungeonCrawler.Core.Extensions;
 
-public static class NetDataReaderExtensions {
-	public static Object GetDeserializable(this NetDataReader reader) {
+public static class NetDataReaderExtensions
+{
+	public static Object GetDeserializable(this NetDataReader reader)
+	{
 		UInt64 hash = reader.GetULong();
 		Type type = LNHashCache.GetType(hash);
 		Object result = Activator.CreateInstance(type);
-		if (result is INetSerializable serializable) {
+		if (result is INetSerializable serializable)
+		{
 			serializable.Deserialize(reader);
 		}
 
 		return result;
 	}
 
-	public static Item GetItem(this NetDataReader reader) {
+	public static T GetDeserializable<T>(this NetDataReader reader)
+	{
+		return (T)reader.GetDeserializable();
+	}
+
+	public static Item GetItem(this NetDataReader reader)
+	{
 		UInt64 hash = reader.GetULong();
 		Type type = LNHashCache.GetType(hash);
-		if (type is null) {
+		if (type is null)
+		{
 			throw new Exception($"Cannot deserialize item hash {hash}");
 		}
 
@@ -29,7 +39,8 @@ public static class NetDataReaderExtensions {
 		return item;
 	}
 
-	public static Guid GetGuid(this NetDataReader reader) {
+	public static Guid GetGuid(this NetDataReader reader)
+	{
 		UInt16 length = reader.GetUShort();
 		Byte[] bytes = new Byte[length];
 		reader.GetBytes(bytes, length);
@@ -37,7 +48,8 @@ public static class NetDataReaderExtensions {
 		return new Guid(bytes);
 	}
 
-	public static Vector2 GetVector2(this NetDataReader reader) {
+	public static Vector2 GetVector2(this NetDataReader reader)
+	{
 		return new Vector2(reader.GetFloat(), reader.GetFloat());
 	}
 }
