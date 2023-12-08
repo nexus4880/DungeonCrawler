@@ -36,6 +36,7 @@ public static class ItemManager
 		{
 			NetDataWriter writer = new NetDataWriter();
 			GameServer.PacketProcessor.Write(writer, new RemoveItemPacket { ItemId = id });
+			Console.WriteLine($"Sending removal of item {id}");
 			GameServer.NetManager.SendToAll(writer, DeliveryMethod.ReliableOrdered);
 		}
 	}

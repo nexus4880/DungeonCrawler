@@ -17,8 +17,10 @@ public static class GameManager
         _entities[entity.EntityId] = entity;
     }
 
-    public static Entity? GetEntityByID(Guid id){
-        if(!_entities.TryGetValue(id, out Entity value)){
+    public static Entity GetEntityByID(Guid id)
+    {
+        if (!_entities.TryGetValue(id, out Entity value))
+        {
             return null;
         }
 
@@ -53,15 +55,17 @@ public static class GameManager
             MoveRight = IsKeyDown(KeyboardKey.KEY_D)
         };
 
-        if(localPlayer.CurrentInputs != currentInputs){
-            Networking.PacketProcessor.Write(Networking.Writer,new SetInputsPacket{
+        if (localPlayer.CurrentInputs != currentInputs)
+        {
+            Networking.PacketProcessor.Write(Networking.Writer, new SetInputsPacket
+            {
                 Inputs = currentInputs
             });
 
             localPlayer.CurrentInputs = currentInputs;
         }
 
-        
+
     }
 
     public static void Draw()
@@ -69,7 +73,8 @@ public static class GameManager
         foreach (var entity in _entities.Values)
         {
             IRenderer renderer = entity.GetComponent<IRenderer>();
-            if(renderer != null){
+            if (renderer != null)
+            {
                 renderer.Draw();
             }
         }
