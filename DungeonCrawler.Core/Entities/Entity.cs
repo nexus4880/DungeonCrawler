@@ -25,6 +25,13 @@ public abstract class Entity : INetSerializable
 	{
 		this.EntityId = reader.GetGuid();
 		this.Position = reader.GetVector2();
+		Byte componentsCount = reader.GetByte();
+		this._entityComponents.EnsureCapacity(componentsCount);
+		for (Byte i = 0; i < componentsCount; i++)
+		{
+			IEntityComponent component = reader.GetDeserializable<IEntityComponent>();
+			this._entityComponents.Add(component);
+		}
 	}
 
 	public Guid EntityId { get; set; }
