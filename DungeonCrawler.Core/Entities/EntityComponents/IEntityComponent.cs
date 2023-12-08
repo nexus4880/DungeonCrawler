@@ -6,5 +6,5 @@ namespace DungeonCrawler.Core.Entities.EntityComponents;
 public interface IEntityComponent : INetSerializable
 {
 	Entity Owner { get; init; }
-	public void Initialize(Stack properties);
+	public void Initialize(Queue properties);
 }

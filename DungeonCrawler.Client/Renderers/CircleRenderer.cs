@@ -26,7 +26,7 @@ public class CircleRenderer : IRenderer
         DrawCircleLines((int)this.Position.X, (int)this.Position.Y, this.Radius, RED);
     }
 
-    public void Initialize(Stack properties)
+    public void Initialize(Queue properties)
     {
         this.Radius = properties.PopValue<Single>(8f);
         this.Position = properties.PopValue<Vector2>(Vector2.Zero);

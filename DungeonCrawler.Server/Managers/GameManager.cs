@@ -32,7 +32,7 @@ public static class GameManager
 
 		T entity = new T { EntityId = entityId };
 		GameManager.EntityList[entityId] = entity;
-		entity.Initialize(new Stack(properties));
+		entity.Initialize(new Queue(properties));
 
 		return entity;
 	}

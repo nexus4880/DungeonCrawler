@@ -27,7 +27,7 @@ public static class Networking
 
 	private static void OnInitializeWorld(InitializeWorldPacket packet, UserPacketEventArgs args)
 	{
-		Console.WriteLine("[OnInitializeWorld]");
+		Console.WriteLine($"[OnInitializeWorld] {packet.EntitiesCount} entities | {packet.LootItemsCount} loot items");
 		for (Int32 i = 0; i < packet.EntitiesCount; i++)
 		{
 			Entity entity = args.PacketReader.GetDeserializable<Entity>();

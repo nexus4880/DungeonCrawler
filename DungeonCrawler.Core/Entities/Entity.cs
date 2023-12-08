@@ -34,7 +34,7 @@ public abstract class Entity : INetSerializable
 	{
 	}
 
-	public virtual void Initialize(Stack properties)
+	public virtual void Initialize(Queue properties)
 	{
 	}
 
@@ -54,7 +54,7 @@ public abstract class Entity : INetSerializable
 			Owner = this
 		};
 
-		Stack props = new Stack(properties);
+		Queue props = new Queue(properties);
 		component.Initialize(props);
 		this._entityComponents.Add(component);
 

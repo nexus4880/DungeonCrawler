@@ -16,7 +16,7 @@ public class PlayerEntity : Entity, IInventoryOwner
 	public NetPeer NetPeer { get; set; }
 	public PlayerInputs CurrentInputs { get; set; }
 
-	public override void Initialize(Stack properties)
+	public override void Initialize(Queue properties)
 	{
 		base.Initialize(properties);
 		this.NetPeer = properties.PopValueOrThrow<NetPeer>();

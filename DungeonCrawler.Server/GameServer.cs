@@ -69,17 +69,17 @@ public static class GameServer
 		Dictionary<Guid, DroppedLootItem>.ValueCollection lootItems = GameManager.LootItems.Values;
 		InitializeWorldPacket initializeWorldPacket = new InitializeWorldPacket { EntitiesCount = entities.Count, LootItemsCount = lootItems.Count };
 		NetDataWriter writer = new NetDataWriter();
+		GameServer.PacketProcessor.Write(writer, initializeWorldPacket);
 		foreach (Entity entity in entities)
 		{
-			writer.Put(entity);
+			writer.PutDeserializable(entity);
 		}
 
 		foreach (DroppedLootItem lootItem in lootItems)
 		{
-			writer.Put(lootItem);
+			writer.PutDeserializable(lootItem);
 		}
 
-		GameServer.PacketProcessor.Write(writer, initializeWorldPacket);
 		peer.Send(writer, DeliveryMethod.ReliableOrdered);
 	}
 

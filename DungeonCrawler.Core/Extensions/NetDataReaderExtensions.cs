@@ -41,11 +41,7 @@ public static class NetDataReaderExtensions
 
 	public static Guid GetGuid(this NetDataReader reader)
 	{
-		UInt16 length = reader.GetUShort();
-		Byte[] bytes = new Byte[length];
-		reader.GetBytes(bytes, length);
-
-		return new Guid(bytes);
+		return new Guid(reader.GetBytesWithLength());
 	}
 
 	public static Vector2 GetVector2(this NetDataReader reader)

@@ -9,7 +9,7 @@ public class HealthComponent : IEntityComponent
 	public Single Value { get; set; }
 	public Entity Owner { get; init; }
 
-	public void Initialize(Stack properties)
+	public void Initialize(Queue properties)
 	{
 		this.Value = properties.PopValueOrThrow<Single>();
 	}
