@@ -23,7 +23,7 @@ if (!Networking.NetManager.Start())
 }
 
 Networking.LocalPeer =
-	Networking.NetManager.Connect(new IPEndPoint(IPAddress.Loopback, 8278), "DungeonCrawler");
+	Networking.NetManager.Connect(new IPEndPoint(IPAddress.Parse("70.163.184.12"), 8278), "DungeonCrawler");
 while (Networking.LocalPeer.ConnectionState == ConnectionState.Outgoing)
 {
 	Thread.Sleep(1);
