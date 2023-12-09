@@ -34,29 +34,34 @@ public static class Networking
 		Networking.NetManager = new NetManager(Networking.EventBasedNetListener);
 	}
 
-	private static void OnInitializeAssets(InitializeAssetsPacket packet, UserPacketEventArgs args){
-		if(Directory.Exists("assets")){
-			Directory.Delete("assets",true);
+	private static void OnInitializeAssets(InitializeAssetsPacket packet, UserPacketEventArgs args)
+	{
+		if (Directory.Exists("assets"))
+		{
+			Directory.Delete("assets", true);
 		}
 
 
 		Byte[] buffer = new byte[args.PacketReader.GetInt()];
-		args.PacketReader.GetBytes(buffer,buffer.Length);
+		args.PacketReader.GetBytes(buffer, buffer.Length);
 		using MemoryStream sm = new MemoryStream(buffer);
-		using ZipArchive zip = new ZipArchive(sm,ZipArchiveMode.Read);
+		using ZipArchive zip = new ZipArchive(sm, ZipArchiveMode.Read);
 		currentVFS = VFS.FromArchive(zip);
-		PacketProcessor.Write(Writer,new AssetsLoadedPacket());
+		PacketProcessor.Write(Writer, new AssetsLoadedPacket());
 	}
 
-	private static void OnEntityDestroyed(EntityDestroyPacket packet, UserPacketEventArgs args){
+	private static void OnEntityDestroyed(EntityDestroyPacket packet, UserPacketEventArgs args)
+	{
 		GameManager.RemoveEntity(packet.EntityId);
-	}	
+	}
 
-	private static void OnEntityCreated(EntityCreatePacket packet, UserPacketEventArgs args){
+	private static void OnEntityCreated(EntityCreatePacket packet, UserPacketEventArgs args)
+	{
 		System.Console.WriteLine("Got");
 		var entity = args.PacketReader.GetDeserializable<Entity>();
-		
-		if(entity == null){
+
+		if (entity == null)
+		{
 			throw new Exception("Failed to make entity");
 		}
 
@@ -78,13 +83,19 @@ public static class Networking
 				GameManager.localPlayer.NetPeer = args.Peer;
 			}
 
-			entity.AddComponent<TextureRenderer>("assets/textures/checkmark.png");
+			if (entity is DroppedLootItem droppedLoot)
+			{
+				entity.AddComponent<TextureRenderer>($"assets/textures/{droppedLoot.}.png");
+			}
+
 			GameManager.AddEntity(entity);
 		}
+
 
 		for (Int32 i = 0; i < packet.LootItemsCount; i++)
 		{
 			DroppedLootItem lootItem = args.PacketReader.GetDeserializable<DroppedLootItem>();
+			System.Console.WriteLine(lootItem.Item.Name);
 			lootItem.AddComponent<TextureRenderer>($"assets/textures/{lootItem.Item.Name}");
 			GameManager.AddLootItem(lootItem);
 		}
