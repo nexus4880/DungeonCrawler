@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using System.Numerics;
-using DungeonCrawler.Core;
 using DungeonCrawler.Core.Entities;
 using DungeonCrawler.Core.Packets;
 using LiteNetLib;
@@ -52,6 +51,15 @@ public static class GameManager
 					NetDataWriter writer = new NetDataWriter();
 					GameServer.PacketProcessor.Write(writer, new EntityMovedPacket { EntityId = player.EntityId, Position = player.Position });
 					GameServer.NetManager.SendToAll(writer, DeliveryMethod.ReliableOrdered);
+				}
+
+				var lootItems = GameManager.GetEntities<DroppedLootItem>().ToArray();
+				foreach (var lootItem in lootItems)
+				{
+					if (Vector2.Distance(lootItem.Position, player.Position) < 16f)
+					{
+						GameManager.DestroyEntity(lootItem.EntityId);
+					}
 				}
 			}
 		}

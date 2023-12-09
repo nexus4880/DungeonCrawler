@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DungeonCrawler.Server", "Du
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DungeonCrawler.Client", "DungeonCrawler.Client\DungeonCrawler.Client.csproj", "{09518426-26B6-4EAF-8757-000F524110FA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DungeonCrawler.Editor", "DungeonCrawler.Editor\DungeonCrawler.Editor.csproj", "{E9B0AAE5-8093-431E-AE83-9532A57B01F8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{09518426-26B6-4EAF-8757-000F524110FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{09518426-26B6-4EAF-8757-000F524110FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{09518426-26B6-4EAF-8757-000F524110FA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E9B0AAE5-8093-431E-AE83-9532A57B01F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E9B0AAE5-8093-431E-AE83-9532A57B01F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E9B0AAE5-8093-431E-AE83-9532A57B01F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E9B0AAE5-8093-431E-AE83-9532A57B01F8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
