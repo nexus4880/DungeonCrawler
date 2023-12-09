@@ -124,7 +124,8 @@ public static class GameServer
 		Console.WriteLine($"[OnConnectionRequest] connection from {peer.EndPoint} accepted as ID {peer.Id}, sending {_assetsBuffer.Length} bytes worth of assets");
 		NetDataWriter writer = new NetDataWriter();
 		GameServer.PacketProcessor.Write(writer, new InitializeAssetsPacket { });
-		writer.PutBytesWithLength(_assetsBuffer);
+		writer.Put((Int32)_assetsBuffer.Length);
+		writer.Put(_assetsBuffer);
 		peer.Send(writer, DeliveryMethod.ReliableOrdered);
 	}
 
