@@ -13,7 +13,13 @@ public class VFS : Dictionary<String, Byte[]>
             Stream entryStream = entry.Open();
             while (entryStream.CanRead)
             {
-                buffer.Add((Byte)entryStream.ReadByte());
+                Int32 readByte = entryStream.ReadByte();
+                if (readByte == -1)
+                {
+                    break;
+                }
+
+                buffer.Add((Byte)readByte);
             }
 
             result[entry.FullName] = buffer[0..buffer.Count].ToArray();
