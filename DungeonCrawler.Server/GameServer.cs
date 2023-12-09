@@ -17,9 +17,15 @@ public static class GameServer
 	public static NetManager NetManager { get; private set; }
 	public static NetPacketProcessor PacketProcessor { get; } = new NetPacketProcessor();
 	private static Byte[] _assetsBuffer;
+	public static WorldData worldData;
 
 	public static void Initialize(IPAddress ipv4, IPAddress ipv6, Int32 port)
 	{
+		Console.WriteLine("Loading map...");
+		using FileStream worldFileStream = File.OpenRead("world.dcm");
+		using BinaryReader reader = new BinaryReader(worldFileStream);
+		GameServer.worldData = WorldData.FromReader(reader);
+
 		Console.WriteLine("Zipping assets...");
 		using MemoryStream memoryStream = new MemoryStream();
 		ZipFile.CreateFromDirectory("./assets/", memoryStream, CompressionLevel.SmallestSize, true);
