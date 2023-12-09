@@ -11,16 +11,17 @@ public class VFS : Dictionary<String, Byte[]>
         foreach (ZipArchiveEntry entry in archive.Entries)
         {
             Stream entryStream = entry.Open();
-            while (entryStream.CanRead)
+            Int32 readByte;
+            do
             {
-                Int32 readByte = entryStream.ReadByte();
+                readByte = entryStream.ReadByte();
                 if (readByte == -1)
                 {
                     break;
                 }
 
                 buffer.Add((Byte)readByte);
-            }
+            } while (true);
 
             result[entry.FullName] = buffer[0..buffer.Count].ToArray();
             buffer.Clear();

@@ -39,7 +39,6 @@ public static class GameServer
 		}
 
 		Console.WriteLine($"Started server on {ip}");
-
 	}
 
 	public static void SubscribePacket<T>(Action<T, UserPacketEventArgs> callback) where T : class, new()
@@ -82,6 +81,7 @@ public static class GameServer
 
 	private static void OnAssetsLoadedPacket(AssetsLoadedPacket packet, UserPacketEventArgs args)
 	{
+		Console.WriteLine("[OnAssetsLoadedPacket]");
 		PlayerEntity thisPlayer = GameManager.CreateEntity<PlayerEntity>(args.Peer);
 		NetDataWriter writer = new NetDataWriter();
 		GameServer.PacketProcessor.Write(writer, new EntityCreatePacket());
@@ -114,11 +114,14 @@ public static class GameServer
 	private static void OnConnectionRequest(ConnectionRequest request)
 	{
 		NetPeer peer = request.AcceptIfKey("DungeonCrawler");
-		if (peer is not null)
+		if (peer is null)
 		{
-			Console.WriteLine($"[OnConnectionRequest] connection from {peer.EndPoint} accepted as ID {peer.Id}");
+			Console.WriteLine($"[OnConnectionRequest] invalid key");
+
+			return;
 		}
 
+		Console.WriteLine($"[OnConnectionRequest] connection from {peer.EndPoint} accepted as ID {peer.Id}, sending {_assetsBuffer.Length} bytes worth of assets");
 		NetDataWriter writer = new NetDataWriter();
 		GameServer.PacketProcessor.Write(writer, new InitializeAssetsPacket { });
 		writer.PutBytesWithLength(_assetsBuffer);
