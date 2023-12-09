@@ -1,23 +1,10 @@
-/*******************************************************************************************
-*
-*   raylib-extras [ImGui] example - Simple Integration
-*
-*	This is a simple ImGui Integration
-*	It is done using C++ but with C style code
-*	It can be done in C as well if you use the C ImGui wrapper
-*	https://github.com/cimgui/cimgui
-*
-*   Copyright (c) 2021 Jeffery Myers
-*
-********************************************************************************************/
-
 using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
-using ImGuiNET;
 using Raylib_CsLo;
+using ImGuiNET;
 
 namespace rlImGui_cs
 {
@@ -222,7 +209,28 @@ namespace rlImGui_cs
         /// <summary>
         /// Forces the font texture atlas to be recomputed and re-cached
         /// </summary>
-       
+        public static unsafe void ReloadFonts()
+        {
+            ImGui.SetCurrentContext(ImGuiContext);
+            ImGuiIOPtr io = ImGui.GetIO();
+
+            int width, height, bytesPerPixel;
+            io.Fonts.GetTexDataAsRGBA32(out byte* pixels, out width, out height, out bytesPerPixel);
+
+            Image image = new Image
+            {
+                data = pixels,
+                width = width,
+                height = height,
+                mipmaps = 1,
+                format = (int)PixelFormat.PIXELFORMAT_UNCOMPRESSED_R8G8B8A8,
+            };
+
+            Raylib.UnloadTexture(FontTexture);
+            FontTexture = Raylib.LoadTextureFromImage(image);
+            io.Fonts.SetTexID(new IntPtr(FontTexture.id));
+        }
+
         unsafe internal static sbyte* rImGuiGetClipText(IntPtr userData)
         {
             return Raylib.GetClipboardText();
@@ -248,26 +256,7 @@ namespace rlImGui_cs
 
             var fonts = ImGui.GetIO().Fonts;
             ImGui.GetIO().Fonts.AddFontDefault();
-
-            // remove this part if you don't want font awesome
-            unsafe
-            {
-                ImFontConfig icons_config = new ImFontConfig();
-                icons_config.MergeMode = 1;                      // merge the glyph ranges into the default font
-                icons_config.PixelSnapH = 1;                     // don't try to render on partial pixels
-                icons_config.FontDataOwnedByAtlas = 0;           // the font atlas does not own this font data
-
-                icons_config.GlyphMaxAdvanceX = float.MaxValue;
-                icons_config.RasterizerMultiply = 1.0f;
-                icons_config.OversampleH = 2;
-                icons_config.OversampleV = 1;
-
-                ushort[] IconRanges = new ushort[3];
-                IconRanges[2] = 0;
-            }
-
             ImGuiIOPtr io = ImGui.GetIO();
-
             if (SetupUserFonts != null)
                 SetupUserFonts(io);
 
@@ -287,6 +276,7 @@ namespace rlImGui_cs
             }
 
             io.ClipboardUserData = IntPtr.Zero;
+            ReloadFonts();
         }
 
         private static void SetMouseEvent(ImGuiIOPtr io, MouseButton rayMouse, ImGuiMouseButton imGuiMouse)
@@ -401,11 +391,11 @@ namespace rlImGui_cs
             }
 
             foreach (var keyItr in RaylibKeyMap)
-                io.KeysData[(int)keyItr.Value].Down = (byte)(Raylib.IsKeyDown(keyItr.Key) ? 1 : 0);
+                io.KeysData[(int)keyItr.Value - 512].Down = (byte)(Raylib.IsKeyDown(keyItr.Key) ? 1 : 0);
 
             // look for any keys that were down last frame and see if they were down and are released
             foreach (var keyItr in RaylibKeyMap)
-	        {
+            {
                 if (Raylib.IsKeyReleased(keyItr.Key))
                     io.AddKeyEvent(keyItr.Value, false);
             }
@@ -646,7 +636,7 @@ namespace rlImGui_cs
                 ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (area.Y / 2 - sizeY / 2));
             }
 
-            ImageRect(image.texture, sizeX, sizeY, new Rectangle(0,0, (image.texture.width), -(image.texture.height) ));
+            ImageRect(image.texture, sizeX, sizeY, new Rectangle(0, 0, (image.texture.width), -(image.texture.height)));
         }
 
         /// <summary>

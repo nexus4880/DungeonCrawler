@@ -5,9 +5,10 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        InitWindow(1280,720,"Editor");
+        InitWindow(1280, 720, "Editor");
         rlImGui.Setup();
-        while(!WindowShouldClose()){
+        while (!WindowShouldClose())
+        {
             BeginDrawing();
             ClearBackground(BLACK);
             rlImGui.Begin();
