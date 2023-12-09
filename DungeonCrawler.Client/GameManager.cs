@@ -46,7 +46,7 @@ public static class GameManager
     }
 
     public static void Update()
-    {
+    {   
         var currentInputs = new PlayerInputs
         {
             MoveUp = IsKeyDown(KeyboardKey.KEY_W),

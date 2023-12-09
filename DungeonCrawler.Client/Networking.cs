@@ -7,6 +7,7 @@ using LiteNetLib;
 using LiteNetLib.Utils;
 using System.Numerics;
 using DungeonCrawler.Client.Renderers;
+using System.IO.Compression;
 
 namespace DungeonCrawler.Client;
 
@@ -17,7 +18,8 @@ public static class Networking
 	public static EventBasedNetListener EventBasedNetListener { get; private set; }
 	public static NetPeer LocalPeer { get; set; }
 	public static NetDataWriter Writer { get; } = new NetDataWriter(true, UInt16.MaxValue);
-
+	public static bool receievedGameState = false;
+	public static VFS currentVFS;
 	public static void Initialize()
 	{
 		Networking.PacketProcessor = new NetPacketProcessor();
@@ -26,9 +28,21 @@ public static class Networking
 		Networking.Subscribe<EntityMovedPacket>(Networking.OnEntityMoved);
 		Networking.Subscribe<EntityCreatePacket>(OnEntityCreated);
 		Networking.Subscribe<EntityDestroyPacket>(OnEntityDestroyed);
+		Networking.Subscribe<InitializeAssetsPacket>(Networking.OnInitializeAssets);
 		Networking.EventBasedNetListener = new EventBasedNetListener();
 		Networking.EventBasedNetListener.NetworkReceiveEvent += Networking.OnNetworkReceive;
 		Networking.NetManager = new NetManager(Networking.EventBasedNetListener);
+	}
+
+	private static void OnInitializeAssets(InitializeAssetsPacket packet, UserPacketEventArgs args){
+		if(Directory.Exists("assets")){
+			Directory.Delete("assets",true);
+		}
+
+		using MemoryStream sm = new MemoryStream(args.PacketReader.GetBytesWithLength());
+		using ZipArchive zip = new ZipArchive(sm,ZipArchiveMode.Read);
+		currentVFS = VFS.FromArchive(zip);
+		PacketProcessor.Write(Writer,new AssetsLoadedPacket());
 	}
 
 	private static void OnEntityDestroyed(EntityDestroyPacket packet, UserPacketEventArgs args){
@@ -51,6 +65,7 @@ public static class Networking
 	private static void OnInitializeWorld(InitializeWorldPacket packet, UserPacketEventArgs args)
 	{
 		Console.WriteLine($"[OnInitializeWorld] {packet.EntitiesCount} entities | {packet.LootItemsCount} loot items");
+		receievedGameState = true;
 		for (Int32 i = 0; i < packet.EntitiesCount; i++)
 		{
 			Entity entity = args.PacketReader.GetDeserializable<Entity>();
@@ -60,7 +75,7 @@ public static class Networking
 				GameManager.localPlayer.NetPeer = args.Peer;
 			}
 
-			entity.AddComponent<CircleRenderer>(8f);
+			entity.AddComponent<TextureRenderer>("assets/textures/checkmark.png");
 			GameManager.AddEntity(entity);
 		}
 
@@ -69,6 +84,7 @@ public static class Networking
 			DroppedLootItem lootItem = args.PacketReader.GetDeserializable<DroppedLootItem>();
 			GameManager.AddLootItem(lootItem);
 		}
+
 	}
 
 	private static void OnEntityMoved(EntityMovedPacket packet, UserPacketEventArgs args)

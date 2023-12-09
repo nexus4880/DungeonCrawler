@@ -38,10 +38,16 @@ InitWindow(1280, 720, "DungeonCrawler");
 while (!WindowShouldClose())
 {
 	Networking.Update();
-	GameManager.Update();
+	if(Networking.receievedGameState){
+		GameManager.Update();
+	}
+	
 	BeginDrawing();
 	ClearBackground(BLACK);
-	GameManager.Draw();
+	if(Networking.receievedGameState){
+		GameManager.Draw();
+	}
+	
 	EndDrawing();
 }
 
