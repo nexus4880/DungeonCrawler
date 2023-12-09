@@ -1,24 +1,26 @@
-﻿using System.Numerics;
+﻿using DungeonCrawler.Core.Entities;
 using DungeonCrawler.Core.Extensions;
 using DungeonCrawler.Core.Items;
 using LiteNetLib.Utils;
 
 namespace DungeonCrawler.Core;
 
-public struct DroppedLootItem : INetSerializable {
+public class DroppedLootItem : Entity
+{
 	public Guid SpawnId { get; set; }
-	public Vector2 Position { get; set; }
 	public Item Item { get; set; }
 
-	public void Serialize(NetDataWriter writer) {
+	public override void Serialize(NetDataWriter writer)
+	{
+		base.Serialize(writer);
 		writer.Put(this.SpawnId);
-		writer.Put(this.Position);
 		writer.Put(this.Item);
 	}
 
-	public void Deserialize(NetDataReader reader) {
+	public override void Deserialize(NetDataReader reader)
+	{
+		base.Deserialize(reader);
 		this.SpawnId = reader.GetGuid();
-		this.Position = reader.GetVector2();
 		this.Item = reader.GetItem();
 	}
 }
