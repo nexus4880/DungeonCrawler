@@ -22,9 +22,21 @@ public static class GameServer
 	public static void Initialize(IPAddress ipv4, IPAddress ipv6, Int32 port)
 	{
 		Console.WriteLine("Loading map...");
-		using FileStream worldFileStream = File.OpenRead("world.dcm");
-		using BinaryReader reader = new BinaryReader(worldFileStream);
-		GameServer.worldData = WorldData.FromReader(reader);
+		try
+		{
+			using FileStream worldFileStream = File.OpenRead("world.dcm");
+			using BinaryReader reader = new BinaryReader(worldFileStream);
+			GameServer.worldData = WorldData.FromReader(reader);
+		}
+		catch (FileNotFoundException)
+		{
+			throw new Exception("world.dcm not found");
+		}
+
+		if (!Directory.Exists("assets"))
+		{
+			throw new Exception("Missing assets directory");
+		}
 
 		Console.WriteLine("Zipping assets...");
 		using MemoryStream memoryStream = new MemoryStream();
