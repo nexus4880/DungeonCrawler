@@ -22,4 +22,20 @@ public class VFS : Dictionary<String, Byte[]>
 
         return result;
     }
+
+    public unsafe Byte* PinnedBytes(String resource, out Int32 length)
+    {
+        if (!this.TryGetValue(resource, out Byte[] bytes))
+        {
+            length = 0;
+
+            return null;
+        }
+
+        length = bytes.Length;
+        fixed (Byte* pBytes = bytes)
+        {
+            return pBytes;
+        }
+    }
 }
