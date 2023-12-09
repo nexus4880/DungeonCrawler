@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "i1CNmbFdOC3ItmXree6Lz5GzDef88mVjnyv4pzH60R/XNI7w+ZTh85hDiGfO/gJMGLeHmQyzCOWQkGPZL6fSZw==",
+  "success": true,
+  "projectFilePath": "/home/local/Projects/DungeonCrawler/DungeonCrawler.Editor/DungeonCrawler.Editor.csproj",
+  "expectedPackageFiles": [
+    "/home/local/.nuget/packages/microsoft.toolkit.highperformance/7.1.2/microsoft.toolkit.highperformance.7.1.2.nupkg.sha512",
+    "/home/local/.nuget/packages/raylib-cslo/4.2.0.9/raylib-cslo.4.2.0.9.nupkg.sha512"
+  ],
+  "logs": []
+}

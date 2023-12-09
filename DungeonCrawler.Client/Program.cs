@@ -23,7 +23,7 @@ if (!Networking.NetManager.Start())
 }
 
 Networking.LocalPeer =
-	Networking.NetManager.Connect(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 8278), "DungeonCrawler");
+	Networking.NetManager.Connect(new IPEndPoint(IPAddress.Parse("70.163.184.12"), 8278), "DungeonCrawler");
 while (Networking.LocalPeer.ConnectionState == ConnectionState.Outgoing)
 {
 	Thread.Sleep(1);
@@ -33,6 +33,7 @@ if (Networking.LocalPeer.ConnectionState != ConnectionState.Connected)
 {
 	throw new Exception("Failed to connect to server");
 }
+
 
 InitWindow(1280, 720, "DungeonCrawler");
 while (!WindowShouldClose())
@@ -46,8 +47,9 @@ while (!WindowShouldClose())
 	ClearBackground(BLACK);
 	if(Networking.receievedGameState){
 		GameManager.Draw();
+		UserInterface.Draw();
 	}
-	
+
 	EndDrawing();
 }
 
