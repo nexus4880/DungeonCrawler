@@ -86,6 +86,8 @@ public static class Networking
 			if (entity is DroppedLootItem droppedLoot)
 			{
 				entity.AddComponent<TextureRenderer>(droppedLoot.TexturePath);
+			}else{
+				entity.AddComponent<TextureRenderer>();
 			}
 
 			GameManager.AddEntity(entity);
