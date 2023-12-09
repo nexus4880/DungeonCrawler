@@ -12,7 +12,6 @@ public abstract class Item : INetSerializable
 
 	public virtual void Serialize(NetDataWriter writer)
 	{
-		writer.Put(LNHashCache.GetHash(this.GetType()));
 		writer.Put(this.Id);
 		writer.Put(this.Name);
 	}
