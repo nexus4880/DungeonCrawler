@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Net;
 using DungeonCrawler.Core;
+using DungeonCrawler.Core.Entities;
 using DungeonCrawler.Core.Items;
 using DungeonCrawler.Server;
 
@@ -12,8 +13,9 @@ Stopwatch frameTimer = Stopwatch.StartNew();
 Boolean isRunning = true;
 Console.CancelKeyPress += (_, __) => isRunning = false;
 Int32 itemsRegistered = LNHashCache.RegisterAllOfType<Item>();
+LNHashCache.RegisterAllOfType<Entity>();
 Console.WriteLine($"Registered {itemsRegistered} item types");
-GameServer.Initialize(IPAddress.Loopback, IPAddress.IPv6Any, 8278);
+GameServer.Initialize(IPAddress.Any, IPAddress.IPv6Any, 8278);
 while (isRunning)
 {
 	Single deltaTime = (Single)frameTimer.Elapsed.TotalSeconds;

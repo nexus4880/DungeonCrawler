@@ -19,14 +19,15 @@ public class TextureRenderer : IRenderer
 
     public void Draw()
     {
-        DrawTexture(texture,(Int32)this.Owner.Position.X,(Int32)this.Owner.Position.Y,WHITE);
+        DrawTexture(texture, (Int32)this.Owner.Position.X, (Int32)this.Owner.Position.Y, WHITE);
     }
 
     public unsafe void Initialize(Queue properties)
     {
-        String texturePath = properties.PopValue<String>(defaultValue: "assets/texture/checkmark.png");
+        String texturePath = properties.PopValueOrThrow<String>();
+        Console.WriteLine(texturePath);
         Byte* pBytes = Networking.currentVFS.PinnedBytes(texturePath, out int length);
-        Image img = LoadImageFromMemory(".png",pBytes,length);
+        Image img = LoadImageFromMemory(".png", pBytes, length);
         texture = LoadTextureFromImage(img);
     }
 

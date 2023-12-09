@@ -3,6 +3,7 @@ using System.Net;
 using DungeonCrawler.Core;
 using DungeonCrawler.Core.Entities;
 using DungeonCrawler.Core.Extensions;
+using DungeonCrawler.Core.Items;
 using DungeonCrawler.Core.Packets;
 using DungeonCrawler.Server.Managers;
 using LiteNetLib;
@@ -39,6 +40,11 @@ public static class GameServer
 		}
 
 		Console.WriteLine($"Started server on {ip}");
+
+		Guid spawnId = Guid.NewGuid();
+		Item item = ItemManager.CreateItem<InstantHealthPotion>(369f);
+		DroppedLootItem droppedLootItem = GameManager.CreateEntity<DroppedLootItem>(spawnId, item, "assets/textures/heart-bottle.png");
+		droppedLootItem.Position = new System.Numerics.Vector2(300f, 300f);
 	}
 
 	public static void SubscribePacket<T>(Action<T, UserPacketEventArgs> callback) where T : class, new()
