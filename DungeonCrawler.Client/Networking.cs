@@ -57,7 +57,6 @@ public static class Networking
 
 	private static void OnEntityCreated(EntityCreatePacket packet, UserPacketEventArgs args)
 	{
-		System.Console.WriteLine("Got");
 		var entity = args.PacketReader.GetDeserializable<Entity>();
 
 		if (entity == null)
@@ -65,7 +64,7 @@ public static class Networking
 			throw new Exception("Failed to make entity");
 		}
 
-		entity.AddComponent<CircleRenderer>();
+		entity.AddComponent<TextureRenderer>("assets/textures/checkmark.png");
 
 		GameManager.AddEntity(entity);
 	}
@@ -88,6 +87,10 @@ public static class Networking
 				entity.AddComponent<TextureRenderer>(droppedLoot.TexturePath);
 			}else{
 				entity.AddComponent<TextureRenderer>();
+			}
+			else
+			{
+				entity.AddComponent<TextureRenderer>("assets/textures/checkmark.png");
 			}
 
 			GameManager.AddEntity(entity);
