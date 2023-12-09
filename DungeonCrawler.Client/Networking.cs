@@ -39,7 +39,10 @@ public static class Networking
 			Directory.Delete("assets",true);
 		}
 
-		using MemoryStream sm = new MemoryStream(args.PacketReader.GetBytesWithLength());
+
+		Byte[] buffer = new byte[args.PacketReader.GetInt()];
+		args.PacketReader.GetBytes(buffer,buffer.Length);
+		using MemoryStream sm = new MemoryStream(buffer);
 		using ZipArchive zip = new ZipArchive(sm,ZipArchiveMode.Read);
 		currentVFS = VFS.FromArchive(zip);
 		PacketProcessor.Write(Writer,new AssetsLoadedPacket());
@@ -82,6 +85,7 @@ public static class Networking
 		for (Int32 i = 0; i < packet.LootItemsCount; i++)
 		{
 			DroppedLootItem lootItem = args.PacketReader.GetDeserializable<DroppedLootItem>();
+			lootItem.AddComponent<TextureRenderer>($"assets/textures/{lootItem.Item.Name}");
 			GameManager.AddLootItem(lootItem);
 		}
 
