@@ -1,4 +1,6 @@
-﻿using DungeonCrawler.Core.Helpers;
+﻿using System.Reflection;
+using DungeonCrawler.Core.Attributes;
+using DungeonCrawler.Core.Helpers;
 
 namespace DungeonCrawler.Core;
 
@@ -20,15 +22,31 @@ public static class LNHashCache
 		return registeredTypes;
 	}
 
-	public static void RegisterType<T>()
+	public static UInt64 RegisterType<T>()
 	{
-		LNHashCache.RegisterType(typeof(T));
+		return LNHashCache.RegisterType(typeof(T));
 	}
 
-	public static void RegisterType(Type type)
+	public static UInt64 RegisterType(Type type)
 	{
-		UInt64 hash = StringHelper.HashString(type.ToString());
+		HashAsAttribute hashAsAttribute = type.GetCustomAttribute<HashAsAttribute>();
+		UInt64 hash = StringHelper.HashString(hashAsAttribute?.Value ?? type.ToString());
 		Console.WriteLine($"Registered Type: {type} | {hash}");
+		LNHashCache._typeToHash[type] = hash;
+		LNHashCache._hashToType[hash] = type;
+
+		return hash;
+	}
+
+	public static void RegisterTypeWithHash<T>(String hashText)
+	{
+		LNHashCache.RegisterTypeWithHash(typeof(T), hashText);
+	}
+
+	public static void RegisterTypeWithHash(Type type, String hashText)
+	{
+		UInt64 hash = StringHelper.HashString(hashText);
+		Console.WriteLine($"Registered Type with fixed hash: {type} | {hash} ('{hashText}')");
 		LNHashCache._typeToHash[type] = hash;
 		LNHashCache._hashToType[hash] = type;
 	}
@@ -42,8 +60,7 @@ public static class LNHashCache
 	{
 		if (!LNHashCache._typeToHash.TryGetValue(type, out UInt64 hash))
 		{
-			LNHashCache._typeToHash[type] = hash = StringHelper.HashString(type.ToString());
-			LNHashCache._hashToType[hash] = type;
+			return RegisterType(type);
 		}
 
 		return hash;

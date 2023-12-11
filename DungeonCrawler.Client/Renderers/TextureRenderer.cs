@@ -1,28 +1,25 @@
 using System.Collections;
-using DungeonCrawler.Client;
-using DungeonCrawler.Client.Renderers;
-using DungeonCrawler.Core;
-using DungeonCrawler.Core.Entities;
 using DungeonCrawler.Core.Extensions;
 using LiteNetLib.Utils;
 using Raylib_CsLo;
 
-public class TextureRenderer : IRenderer
+namespace DungeonCrawler.Client.Renderers;
+
+public class TextureRenderer : BaseRenderer
 {
-    public Entity Owner { get; init; }
     public Texture texture;
 
-    public void Deserialize(NetDataReader reader)
+    public override void Deserialize(NetDataReader reader)
     {
-        throw new NotImplementedException();
+        base.Deserialize(reader);
     }
 
-    public void Draw()
+    public override void Draw()
     {
         DrawTexture(texture, (Int32)this.Owner.Position.X, (Int32)this.Owner.Position.Y, WHITE);
     }
 
-    public unsafe void Initialize(Queue properties)
+    public unsafe override void Initialize(Queue properties)
     {
         String texturePath = properties.PopValueOrThrow<String>();
         Console.WriteLine(texturePath);
@@ -31,8 +28,14 @@ public class TextureRenderer : IRenderer
         texture = LoadTextureFromImage(img);
     }
 
-    public void Serialize(NetDataWriter writer)
+    public override void OnComponentRemoved()
     {
-        throw new NotImplementedException();
+        base.OnComponentRemoved();
+        UnloadTexture(this.texture);
+    }
+
+    public override void Serialize(NetDataWriter writer)
+    {
+        base.Serialize(writer);
     }
 }

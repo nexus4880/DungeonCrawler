@@ -10,7 +10,18 @@ public static class NetDataReaderExtensions
 	{
 		UInt64 hash = reader.GetULong();
 		Type type = LNHashCache.GetType(hash);
+		if (type is null)
+		{
+			throw new Exception($"Cannot deserialize hash: {hash}");
+		}
+
+		Console.WriteLine($"Deserialized {type}");
 		Object result = Activator.CreateInstance(type);
+		if (result is null)
+		{
+			throw new Exception($"Failed to create instance of {type}");
+		}
+
 		if (result is INetSerializable serializable)
 		{
 			serializable.Deserialize(reader);

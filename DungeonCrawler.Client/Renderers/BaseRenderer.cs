@@ -2,7 +2,7 @@ using DungeonCrawler.Core.Entities.EntityComponents;
 
 namespace DungeonCrawler.Client.Renderers;
 
-public interface IRenderer : IEntityComponent
+public abstract class BaseRenderer : BaseEntityComponent
 {
-    void Draw();
+    public abstract void Draw();
 }

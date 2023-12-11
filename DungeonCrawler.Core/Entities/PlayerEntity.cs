@@ -13,8 +13,8 @@ public class PlayerEntity : Entity, IInventoryOwner
 		this.AddComponent<HealthComponent>(100f);
 	}
 
-	public NetPeer NetPeer { get; set; }
-	public PlayerInputs CurrentInputs { get; set; }
+	public virtual NetPeer NetPeer { get; set; }
+	public virtual PlayerInputs CurrentInputs { get; set; }
 
 	public override void Initialize(Queue properties)
 	{
@@ -22,5 +22,5 @@ public class PlayerEntity : Entity, IInventoryOwner
 		this.NetPeer = properties.PopValueOrThrow<NetPeer>();
 	}
 
-	public Inventory Inventory { get; }
+	public virtual Inventory Inventory { get; }
 }

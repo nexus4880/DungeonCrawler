@@ -5,6 +5,7 @@ using DungeonCrawler.Core.Entities;
 using DungeonCrawler.Core.Extensions;
 using DungeonCrawler.Core.Items;
 using DungeonCrawler.Core.Packets;
+using DungeonCrawler.Server.Entities;
 using DungeonCrawler.Server.Managers;
 using LiteNetLib;
 using LiteNetLib.Utils;
@@ -30,7 +31,7 @@ public static class GameServer
 		}
 		catch (FileNotFoundException)
 		{
-			throw new Exception("world.dcm not found");
+			//throw new Exception("world.dcm not found"); will re-enable whenever we actually have a map
 		}
 
 		if (!Directory.Exists("assets"))
@@ -50,6 +51,7 @@ public static class GameServer
 		GameServer.EventBasedNetListener.PeerDisconnectedEvent += GameServer.OnPeerDisconnected;
 		SubscribePacket<SetInputsPacket>(GameServer.OnSetInputsPacket);
 		SubscribePacket<AssetsLoadedPacket>(GameServer.OnAssetsLoadedPacket);
+		SubscribePacket<WorldLoadedPacket>(GameServer.OnWorldLoadedPacket);
 		GameServer.NetManager = new NetManager(GameServer.EventBasedNetListener);
 		String ip = $"{ipv4}:{port}";
 		if (!GameServer.NetManager.Start(ipv4, ipv6, port))
@@ -72,7 +74,7 @@ public static class GameServer
 
 	private static void OnSetInputsPacket(SetInputsPacket packet, UserPacketEventArgs args)
 	{
-		PlayerEntity player = GameManager.GetEntities<PlayerEntity>().FirstOrDefault(player => player.NetPeer.Id == args.Peer.Id);
+		ServerPlayerEntity player = GameManager.GetEntities<ServerPlayerEntity>().FirstOrDefault(player => player.NetPeer.Id == args.Peer.Id);
 		if (player is null)
 		{
 			Console.WriteLine($"[OnSetInputsPacket] no peer {args.Peer.Id}");
@@ -85,7 +87,7 @@ public static class GameServer
 
 	private static void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectinfo)
 	{
-		PlayerEntity playerEntity = GameManager.GetEntities<PlayerEntity>().FirstOrDefault(player => player.NetPeer.Id == peer.Id);
+		ServerPlayerEntity playerEntity = GameManager.GetEntities<ServerPlayerEntity>().FirstOrDefault(player => player.NetPeer.Id == peer.Id);
 		if (playerEntity is not null)
 		{
 			if (GameManager.DestroyEntity(playerEntity.EntityId))
@@ -105,21 +107,15 @@ public static class GameServer
 
 	private static void OnAssetsLoadedPacket(AssetsLoadedPacket packet, UserPacketEventArgs args)
 	{
-		Console.WriteLine("[OnAssetsLoadedPacket]");
-		PlayerEntity thisPlayer = GameManager.CreateEntity<PlayerEntity>(args.Peer);
-		NetDataWriter writer = new NetDataWriter();
-		GameServer.PacketProcessor.Write(writer, new EntityCreatePacket());
-		writer.PutDeserializable(thisPlayer);
-		GameServer.NetManager.SendToAll(writer, DeliveryMethod.ReliableOrdered, args.Peer);
-
+		Console.WriteLine($"[OnAssetsLoadedPacket] {args.Peer.Id} has finished loading assets, sending game state");
 		Dictionary<Guid, Entity>.ValueCollection entities = GameManager.EntityList.Values;
 		Dictionary<Guid, DroppedLootItem>.ValueCollection lootItems = GameManager.LootItems.Values;
-		writer = new NetDataWriter();
+		NetDataWriter writer = new NetDataWriter();
 		GameServer.PacketProcessor.Write(writer, new InitializeWorldPacket
 		{
 			EntitiesCount = entities.Count,
 			LootItemsCount = lootItems.Count,
-			LocalPlayerEntityId = thisPlayer.EntityId
+			LocalPlayerEntityId = Guid.Empty
 		});
 
 		foreach (Entity entity in entities)
@@ -132,6 +128,14 @@ public static class GameServer
 			writer.PutDeserializable(lootItem);
 		}
 
+		args.Peer.Send(writer, DeliveryMethod.ReliableOrdered);
+	}
+
+	private static void OnWorldLoadedPacket(WorldLoadedPacket packet, UserPacketEventArgs args)
+	{
+		Entity thisPlayer = GameManager.CreateEntity<ServerPlayerEntity>(args.Peer);
+		NetDataWriter writer = new NetDataWriter();
+		GameServer.PacketProcessor.Write(writer, new SetEntityContextPacket { EntityId = thisPlayer.EntityId });
 		args.Peer.Send(writer, DeliveryMethod.ReliableOrdered);
 	}
 

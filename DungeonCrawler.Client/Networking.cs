@@ -20,15 +20,17 @@ public static class Networking
 	public static NetDataWriter Writer { get; } = new NetDataWriter(true, UInt16.MaxValue);
 	public static bool receievedGameState = false;
 	public static VFS currentVFS;
+
 	public static void Initialize()
 	{
 		Networking.PacketProcessor = new NetPacketProcessor();
 		Networking.PacketProcessor.Initialize();
+		Networking.Subscribe<InitializeAssetsPacket>(Networking.OnInitializeAssets);
 		Networking.Subscribe<InitializeWorldPacket>(Networking.OnInitializeWorld);
 		Networking.Subscribe<EntityMovedPacket>(Networking.OnEntityMoved);
-		Networking.Subscribe<EntityCreatePacket>(OnEntityCreated);
-		Networking.Subscribe<EntityDestroyPacket>(OnEntityDestroyed);
-		Networking.Subscribe<InitializeAssetsPacket>(Networking.OnInitializeAssets);
+		Networking.Subscribe<EntityCreatePacket>(Networking.OnEntityCreated);
+		Networking.Subscribe<EntityDestroyPacket>(Networking.OnEntityDestroyed);
+		Networking.Subscribe<SetEntityContextPacket>(Networking.SetEntityContext);
 		Networking.EventBasedNetListener = new EventBasedNetListener();
 		Networking.EventBasedNetListener.NetworkReceiveEvent += Networking.OnNetworkReceive;
 		Networking.NetManager = new NetManager(Networking.EventBasedNetListener);
@@ -36,13 +38,9 @@ public static class Networking
 
 	private static void OnInitializeAssets(InitializeAssetsPacket packet, UserPacketEventArgs args)
 	{
-		if (Directory.Exists("assets"))
-		{
-			Directory.Delete("assets", true);
-		}
-
-
-		Byte[] buffer = new byte[args.PacketReader.GetInt()];
+		Int32 assetsBufferSize = args.PacketReader.GetInt();
+		Console.WriteLine($"[OnInitializeAssets] assets buffer size: {assetsBufferSize}");
+		Byte[] buffer = new byte[assetsBufferSize];
 		args.PacketReader.GetBytes(buffer, buffer.Length);
 		using MemoryStream sm = new MemoryStream(buffer);
 		using ZipArchive zip = new ZipArchive(sm, ZipArchiveMode.Read);
@@ -52,21 +50,57 @@ public static class Networking
 
 	private static void OnEntityDestroyed(EntityDestroyPacket packet, UserPacketEventArgs args)
 	{
+		Console.WriteLine($"[OnEntityDestroyed] entity {packet.EntityId} destroyed");
 		GameManager.RemoveEntity(packet.EntityId);
+	}
+
+	private static void SetEntityContext(SetEntityContextPacket packet, UserPacketEventArgs args)
+	{
+		if (packet.EntityId != Guid.Empty)
+		{
+			Entity entity = GameManager.GetEntityByID(packet.EntityId);
+			switch (entity)
+			{
+				case PlayerEntity playerEntity:
+					{
+						Console.WriteLine($"[SetEntityContext] set entity context to {packet.EntityId}");
+						GameManager.localPlayer = playerEntity;
+
+						break;
+					}
+				case null:
+					{
+						Console.WriteLine($"[SetEntityContext] {packet.EntityId} is not an entity");
+
+						break;
+					}
+				default:
+					{
+						Console.WriteLine($"[SetEntityContext] {packet.EntityId} is not a PlayerEntity");
+
+						break;
+					}
+			}
+		}
+		else
+		{
+			GameManager.localPlayer = null;
+		}
 	}
 
 	private static void OnEntityCreated(EntityCreatePacket packet, UserPacketEventArgs args)
 	{
-		var entity = args.PacketReader.GetDeserializable<Entity>();
-
-		if (entity == null)
+		try
 		{
-			throw new Exception("Failed to make entity");
+			Entity entity = args.PacketReader.GetDeserializable<Entity>();
+			Console.WriteLine($"[OnEntityCreated] {entity.EntityId} was created at {entity.Position} of type '{entity.GetType()}'");
+			entity.AddComponent<TextureRenderer>("assets/textures/checkmark.png");
+			GameManager.AddEntity(entity);
 		}
-
-		entity.AddComponent<TextureRenderer>("assets/textures/checkmark.png");
-
-		GameManager.AddEntity(entity);
+		catch (Exception ex)
+		{
+			Console.WriteLine($"[OnEntityCreated] failed to create entity: '{ex.Message}'");
+		}
 	}
 
 	private static void OnInitializeWorld(InitializeWorldPacket packet, UserPacketEventArgs args)
@@ -103,10 +137,12 @@ public static class Networking
 			GameManager.AddLootItem(lootItem);
 		}
 
+		Networking.PacketProcessor.Write(Networking.Writer, new WorldLoadedPacket { });
 	}
 
 	private static void OnEntityMoved(EntityMovedPacket packet, UserPacketEventArgs args)
 	{
+		Console.WriteLine($"[OnEntityMoved] {packet.EntityId} moved to {packet.Position}");
 		if (GameManager.GetEntityByID(packet.EntityId) == null)
 		{
 			return;
@@ -133,7 +169,6 @@ public static class Networking
 	private static void OnNetworkReceive(NetPeer peer, NetPacketReader reader, Byte channel,
 		DeliveryMethod deliverymethod)
 	{
-		Console.WriteLine("[OnNetworkReceive]");
 		try
 		{
 			Networking.PacketProcessor.ReadAllPackets(reader,
@@ -141,6 +176,7 @@ public static class Networking
 		}
 		catch (ParseException)
 		{
+			Console.WriteLine("[OnNetworkReceive] failed to parse packet");
 		}
 	}
 }

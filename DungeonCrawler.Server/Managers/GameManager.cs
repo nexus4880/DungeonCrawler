@@ -1,6 +1,9 @@
 ﻿using System.Collections;
 using System.Numerics;
 using DungeonCrawler.Core.Entities;
+using DungeonCrawler.Core.Entities.EntityComponents;
+using DungeonCrawler.Core.Extensions;
+using DungeonCrawler.Core.Items;
 using DungeonCrawler.Core.Packets;
 using LiteNetLib;
 using LiteNetLib.Utils;
@@ -24,41 +27,51 @@ public static class GameManager
 			entity.Update(deltaTime);
 			if (entity is PlayerEntity player)
 			{
-				Vector2 movement = Vector2.Zero;
-				if (player.CurrentInputs.MoveLeft)
+				foreach (DroppedLootItem droppedLootItem in GameManager.GetEntities<DroppedLootItem>())
 				{
-					movement.X -= 1f;
-				}
-
-				if (player.CurrentInputs.MoveRight)
-				{
-					movement.X += 1f;
-				}
-
-				if (player.CurrentInputs.MoveDown)
-				{
-					movement.Y += 1f;
-				}
-
-				if (player.CurrentInputs.MoveUp)
-				{
-					movement.Y -= 1f;
-				}
-
-				if (movement.Length() != 0f)
-				{
-					player.Position += movement;
-					NetDataWriter writer = new NetDataWriter();
-					GameServer.PacketProcessor.Write(writer, new EntityMovedPacket { EntityId = player.EntityId, Position = player.Position });
-					GameServer.NetManager.SendToAll(writer, DeliveryMethod.ReliableOrdered);
-				}
-
-				var lootItems = GameManager.GetEntities<DroppedLootItem>().ToArray();
-				foreach (var lootItem in lootItems)
-				{
-					if (Vector2.Distance(lootItem.Position, player.Position) < 16f)
+					if (Vector2.Distance(droppedLootItem.Position, player.Position) < 16f)
 					{
-						GameManager.DestroyEntity(lootItem.EntityId);
+						switch (droppedLootItem.Item)
+						{
+							case InstantHealthPotion healthPotion:
+								{
+									HealthComponent healthComponent = player.GetComponent<HealthComponent>();
+									if (healthComponent is null)
+									{
+										continue;
+									}
+
+									healthComponent.Value += healthPotion.Amount;
+
+									break;
+								}
+							case SpeedPotion speedPotion:
+								{
+									MovementSpeedBuffComponent movementSpeedBuffComponent = player.GetComponent<MovementSpeedBuffComponent>();
+									if (movementSpeedBuffComponent is not null)
+									{
+										if (speedPotion.Multiplier > movementSpeedBuffComponent.Value)
+										{
+											movementSpeedBuffComponent.Value = speedPotion.Multiplier;
+										}
+
+										if (speedPotion.Duration > movementSpeedBuffComponent.Duration)
+										{
+											movementSpeedBuffComponent.Duration = speedPotion.Duration;
+										}
+									}
+									else
+									{
+										player.AddComponent<MovementSpeedBuffComponent>(speedPotion.Multiplier, speedPotion.Duration);
+									}
+
+									break;
+								}
+						}
+
+						if (GameManager.DestroyEntity(droppedLootItem.EntityId))
+						{
+						}
 					}
 				}
 			}
@@ -67,15 +80,15 @@ public static class GameManager
 
 	public static T CreateEntity<T>(params Object[] properties) where T : Entity, new()
 	{
-		Guid entityId;
-		do
-		{
-			entityId = Guid.NewGuid();
-		} while (GameManager.EntityList.ContainsKey(entityId));
-
+		Guid entityId = Guid.NewGuid();
 		T entity = new T { EntityId = entityId };
 		GameManager.EntityList[entityId] = entity;
 		entity.Initialize(new Queue(properties));
+
+		NetDataWriter writer = new NetDataWriter();
+		GameServer.PacketProcessor.Write(writer, new EntityCreatePacket());
+		writer.PutDeserializable(entity);
+		GameServer.NetManager.SendToAll(writer, DeliveryMethod.ReliableOrdered);
 
 		return entity;
 	}

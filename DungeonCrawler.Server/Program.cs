@@ -2,6 +2,7 @@
 using System.Net;
 using DungeonCrawler.Core;
 using DungeonCrawler.Core.Entities;
+using DungeonCrawler.Core.Entities.EntityComponents;
 using DungeonCrawler.Core.Items;
 using DungeonCrawler.Server;
 
@@ -12,9 +13,16 @@ Stopwatch frameTimer = Stopwatch.StartNew();
 
 Boolean isRunning = true;
 Console.CancelKeyPress += (_, __) => isRunning = false;
+
 Int32 itemsRegistered = LNHashCache.RegisterAllOfType<Item>();
-LNHashCache.RegisterAllOfType<Entity>();
 Console.WriteLine($"Registered {itemsRegistered} item types");
+
+Int32 entitiesRegistered = LNHashCache.RegisterAllOfType<Entity>();
+Console.WriteLine($"Registered {entitiesRegistered} entity types");
+
+Int32 entityComponentsRegistered = LNHashCache.RegisterAllOfType<BaseEntityComponent>();
+Console.WriteLine($"Registered {entityComponentsRegistered} entity component types");
+
 GameServer.Initialize(IPAddress.Any, IPAddress.IPv6Any, 8278);
 while (isRunning)
 {

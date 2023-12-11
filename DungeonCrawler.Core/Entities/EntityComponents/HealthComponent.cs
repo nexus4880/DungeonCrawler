@@ -4,23 +4,25 @@ using LiteNetLib.Utils;
 
 namespace DungeonCrawler.Core.Entities.EntityComponents;
 
-public class HealthComponent : IEntityComponent
+public class HealthComponent : BaseEntityComponent
 {
 	public Single Value { get; set; }
-	public Entity Owner { get; init; }
 
-	public void Initialize(Queue properties)
+	public override void Initialize(Queue properties)
 	{
+		base.Initialize(properties);
 		this.Value = properties.PopValueOrThrow<Single>();
 	}
 
-	public void Serialize(NetDataWriter writer)
+	public override void Serialize(NetDataWriter writer)
 	{
+		base.Serialize(writer);
 		writer.Put(this.Value);
 	}
 
-	public void Deserialize(NetDataReader reader)
+	public override void Deserialize(NetDataReader reader)
 	{
+		base.Deserialize(reader);
 		this.Value = reader.GetFloat();
 	}
 }

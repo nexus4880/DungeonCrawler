@@ -3,7 +3,6 @@ using DungeonCrawler.Core.Entities;
 using DungeonCrawler.Client.Renderers;
 using Raylib_CsLo;
 using DungeonCrawler.Core.Packets;
-using System.Globalization;
 namespace DungeonCrawler.Client;
 
 public static class GameManager
@@ -46,7 +45,12 @@ public static class GameManager
     }
 
     public static void Update()
-    {   
+    {
+        if (localPlayer is null)
+        {
+            return;
+        }
+
         var currentInputs = new PlayerInputs
         {
             MoveUp = IsKeyDown(KeyboardKey.KEY_W),
@@ -64,15 +68,13 @@ public static class GameManager
 
             localPlayer.CurrentInputs = currentInputs;
         }
-
-
     }
 
     public static void Draw()
     {
         foreach (var entity in _entities.Values)
         {
-            IRenderer renderer = entity.GetComponent<IRenderer>();
+            BaseRenderer renderer = entity.GetComponent<BaseRenderer>();
             if (renderer != null)
             {
                 renderer.Draw();
