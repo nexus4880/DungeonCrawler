@@ -6,6 +6,9 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+      <ProjectReference Include="..\DungeonCrawler.Core\DungeonCrawler.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="ImGui.NET" Version="1.90.0.1" />
     <PackageReference Include="Raylib-CsLo" Version="4.2.0.9" />
   </ItemGroup>
