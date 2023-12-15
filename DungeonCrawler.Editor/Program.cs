@@ -1,9 +1,5 @@
 ﻿using rlImGui_cs;
 using ImGuiNET;
-using DungeonCrawler.Core;
-using System.Numerics;
-using Raylib_CsLo;
-namespace DungeonCrawler.Editor;
 public class Program
 {
     public static void Main(string[] args)
@@ -18,7 +14,7 @@ public class Program
         while (!WindowShouldClose())
         {
             BeginDrawing();
-            ClearBackground(BLACK);
+            ClearBackground(ORANGE);
             rlImGui.Begin();
 
             if (ImGui.Begin("Save/Load Map"))

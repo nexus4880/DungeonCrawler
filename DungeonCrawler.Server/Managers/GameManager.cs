@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Specialized;
 using System.Numerics;
 using DungeonCrawler.Core.Entities;
 using DungeonCrawler.Core.Entities.EntityComponents;
@@ -13,7 +14,6 @@ namespace DungeonCrawler.Server.Managers;
 public static class GameManager
 {
 	public static readonly Dictionary<Guid, Entity> EntityList = new Dictionary<Guid, Entity>();
-	public static readonly Dictionary<Guid, DroppedLootItem> LootItems = new Dictionary<Guid, DroppedLootItem>();
 
 	public static IEnumerable<T> GetEntities<T>() where T : Entity
 	{
@@ -62,7 +62,7 @@ public static class GameManager
 									}
 									else
 									{
-										player.AddComponent<MovementSpeedBuffComponent>(speedPotion.Multiplier, speedPotion.Duration);
+										player.AddComponent<MovementSpeedBuffComponent>(new ListDictionary { { "Multiplier", speedPotion.Multiplier }, { "Duration", speedPotion.Duration } });
 									}
 
 									break;
@@ -78,17 +78,12 @@ public static class GameManager
 		}
 	}
 
-	public static T CreateEntity<T>(params Object[] properties) where T : Entity, new()
+	public static T CreateEntity<T>(IDictionary properties) where T : Entity, new()
 	{
 		Guid entityId = Guid.NewGuid();
 		T entity = new T { EntityId = entityId };
 		GameManager.EntityList[entityId] = entity;
-		entity.Initialize(new Queue(properties));
-
-		NetDataWriter writer = new NetDataWriter();
-		GameServer.PacketProcessor.Write(writer, new EntityCreatePacket());
-		writer.PutDeserializable(entity);
-		GameServer.NetManager.SendToAll(writer, DeliveryMethod.ReliableOrdered);
+		entity.Initialize(properties);
 
 		return entity;
 	}

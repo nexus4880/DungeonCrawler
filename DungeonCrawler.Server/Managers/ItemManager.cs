@@ -11,17 +11,17 @@ public static class ItemManager
 {
 	private static Dictionary<Guid, Item> _items = new Dictionary<Guid, Item>();
 
-	public static T CreateItem<T>(params Object[] properties) where T : Item, new()
+	public static T CreateItem<T>(IDictionary properties) where T : Item, new()
 	{
 		return (T)ItemManager.CreateItem(typeof(T), properties);
 	}
 
-	public static Item CreateItem(Type itemType, params Object[] properties)
+	public static Item CreateItem(Type itemType, IDictionary properties)
 	{
 		Item item = (Item)Activator.CreateInstance(itemType)!;
 		item.Id = Guid.NewGuid();
 		ItemManager._items[item.Id] = item;
-		item.Initialize(new Queue(properties));
+		item.Initialize(properties);
 
 		return item;
 	}

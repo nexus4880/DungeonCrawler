@@ -22,8 +22,8 @@ public class InstantHealthPotion : Item
 		this.Amount = reader.GetFloat();
 	}
 
-	public override void Initialize(Queue properties)
+	public override void Initialize(IDictionary properties)
 	{
-		this.Amount = properties.PopValue(100f);
+		this.Amount = properties.GetValueAs<Single>("Amount", 100f);
 	}
 }

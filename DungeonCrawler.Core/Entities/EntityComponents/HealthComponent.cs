@@ -8,10 +8,10 @@ public class HealthComponent : BaseEntityComponent
 {
 	public Single Value { get; set; }
 
-	public override void Initialize(Queue properties)
+	public override void Initialize(IDictionary properties)
 	{
 		base.Initialize(properties);
-		this.Value = properties.PopValueOrThrow<Single>();
+		this.Value = properties.GetValueAsOrThrow<Single>("Value");
 	}
 
 	public override void Serialize(NetDataWriter writer)

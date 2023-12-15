@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Numerics;
 using DungeonCrawler.Core.Entities;
 using DungeonCrawler.Core.Extensions;
@@ -9,32 +10,31 @@ namespace DungeonCrawler.Server.Entities;
 
 public class ServerEntity : Entity
 {
-	public override Vector2 Position
+	public void SendUpdatePosition()
 	{
-		get
-		{
-			return base.Position;
-		}
-		set
-		{
-			base.Position = value;
-			EntityMovedPacket packet = new EntityMovedPacket { EntityId = this.EntityId, Position = value };
-			NetDataWriter writer = new NetDataWriter();
-			GameServer.PacketProcessor.Write(writer, packet);
-			if (this is ServerPlayerEntity serverPlayerEntity)
-			{
-				GameServer.NetManager.SendToAll(writer, DeliveryMethod.ReliableOrdered, serverPlayerEntity.NetPeer);
-			}
-			else
-			{
-				GameServer.NetManager.SendToAll(writer, DeliveryMethod.ReliableOrdered);
-			}
-		}
+		EntityMovedPacket packet = new EntityMovedPacket { EntityId = this.EntityId, Position = this.Position };
+		NetDataWriter writer = new NetDataWriter();
+		GameServer.PacketProcessor.Write(writer, packet);
+		GameServer.NetManager.SendToAll(writer, DeliveryMethod.ReliableOrdered);
 	}
 
-	public override T AddComponent<T>(params object[] properties)
+	public void SendCreateEntity()
+	{
+		NetDataWriter writer = new NetDataWriter();
+		GameServer.PacketProcessor.Write(writer, new EntityCreatePacket());
+		writer.PutDeserializable(this);
+		GameServer.NetManager.SendToAll(writer, DeliveryMethod.ReliableOrdered);
+	}
+
+	public void GiveControl(NetPeer peer)
+	{
+		NetDataWriter writer = new NetDataWriter();
+		GameServer.PacketProcessor.Write(writer, new SetEntityContextPacket { EntityId = this.EntityId });
+		peer.Send(writer, DeliveryMethod.ReliableOrdered);
+	}
+
+	public override T AddComponent<T>(IDictionary properties)
 	{
 		return base.AddComponent<T>(properties);
-
 	}
 }

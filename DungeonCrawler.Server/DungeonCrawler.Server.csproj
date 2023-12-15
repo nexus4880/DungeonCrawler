@@ -7,4 +7,7 @@
     <ItemGroup>
       <ProjectReference Include="..\DungeonCrawler.Core\DungeonCrawler.Core.csproj" />
     </ItemGroup>
+    <ItemGroup>
+      <PackageReference Include="tiledcs" Version="3.3.3" />
+    </ItemGroup>
 </Project>

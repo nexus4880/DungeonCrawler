@@ -1,14 +1,20 @@
-﻿using System.IO.Compression;
+﻿using System.Collections;
+using System.Collections.Specialized;
+using System.IO.Compression;
 using System.Net;
+using System.Numerics;
 using DungeonCrawler.Core;
 using DungeonCrawler.Core.Entities;
 using DungeonCrawler.Core.Extensions;
 using DungeonCrawler.Core.Items;
 using DungeonCrawler.Core.Packets;
 using DungeonCrawler.Server.Entities;
+using DungeonCrawler.Server.Entities.EntityComponents.Renderers;
+using DungeonCrawler.Server.Extensions;
 using DungeonCrawler.Server.Managers;
 using LiteNetLib;
 using LiteNetLib.Utils;
+using TiledCS;
 
 namespace DungeonCrawler.Server;
 
@@ -18,21 +24,12 @@ public static class GameServer
 	public static NetManager NetManager { get; private set; }
 	public static NetPacketProcessor PacketProcessor { get; } = new NetPacketProcessor();
 	private static Byte[] _assetsBuffer;
-	public static WorldData worldData;
+	private static TiledMap _map;
 
 	public static void Initialize(IPAddress ipv4, IPAddress ipv6, Int32 port)
 	{
 		Console.WriteLine("Loading map...");
-		try
-		{
-			using FileStream worldFileStream = File.OpenRead("world.dcm");
-			using BinaryReader reader = new BinaryReader(worldFileStream);
-			GameServer.worldData = WorldData.FromReader(reader);
-		}
-		catch (FileNotFoundException)
-		{
-			//throw new Exception("world.dcm not found"); will re-enable whenever we actually have a map
-		}
+		GameServer._map = new TiledMap("/home/nicholas/Tiled/untitled.tmx");
 
 		if (!Directory.Exists("assets"))
 		{
@@ -61,10 +58,25 @@ public static class GameServer
 
 		Console.WriteLine($"Started server on {ip}");
 
-		Guid spawnId = Guid.NewGuid();
-		Item item = ItemManager.CreateItem<InstantHealthPotion>(369f);
-		DroppedLootItem droppedLootItem = GameManager.CreateEntity<DroppedLootItem>(spawnId, item, "assets/textures/heart-bottle.png");
-		droppedLootItem.Position = new System.Numerics.Vector2(300f, 300f);
+		foreach (TiledObject lootPoint in GameServer._map.GetLayerByName("Loot").objects)
+		{
+			Type itemType = LNHashCache.GetTypeByName(lootPoint.type);
+			if (itemType is null)
+			{
+				throw new Exception($"Failed to deserialize type: '{lootPoint.type}'");
+			}
+
+			IDictionary itemProperties = lootPoint.properties.Parse();
+			DroppedLootItem droppedItem = GameManager.CreateEntity<DroppedLootItem>(
+				new ListDictionary {
+					{"Guid", Guid.NewGuid()},
+					{"Item", ItemManager.CreateItem(itemType, itemProperties)}
+				}
+			);
+
+			droppedItem.AddComponent<ServerTextureRenderer>(itemProperties);
+			droppedItem.Position = new Vector2(lootPoint.x, lootPoint.y);
+		}
 	}
 
 	public static void SubscribePacket<T>(Action<T, UserPacketEventArgs> callback) where T : class, new()
@@ -109,12 +121,10 @@ public static class GameServer
 	{
 		Console.WriteLine($"[OnAssetsLoadedPacket] {args.Peer.Id} has finished loading assets, sending game state");
 		Dictionary<Guid, Entity>.ValueCollection entities = GameManager.EntityList.Values;
-		Dictionary<Guid, DroppedLootItem>.ValueCollection lootItems = GameManager.LootItems.Values;
 		NetDataWriter writer = new NetDataWriter();
 		GameServer.PacketProcessor.Write(writer, new InitializeWorldPacket
 		{
 			EntitiesCount = entities.Count,
-			LootItemsCount = lootItems.Count,
 			LocalPlayerEntityId = Guid.Empty
 		});
 
@@ -123,20 +133,21 @@ public static class GameServer
 			writer.PutDeserializable(entity);
 		}
 
-		foreach (DroppedLootItem lootItem in lootItems)
-		{
-			writer.PutDeserializable(lootItem);
-		}
-
 		args.Peer.Send(writer, DeliveryMethod.ReliableOrdered);
 	}
 
 	private static void OnWorldLoadedPacket(WorldLoadedPacket packet, UserPacketEventArgs args)
 	{
-		Entity thisPlayer = GameManager.CreateEntity<ServerPlayerEntity>(args.Peer);
-		NetDataWriter writer = new NetDataWriter();
-		GameServer.PacketProcessor.Write(writer, new SetEntityContextPacket { EntityId = thisPlayer.EntityId });
-		args.Peer.Send(writer, DeliveryMethod.ReliableOrdered);
+		TiledObject[] spawnPoints = GameServer._map.GetLayerByName("SpawnPoints").objects;
+		TiledObject spawnPoint = spawnPoints[Random.Shared.Next(0, spawnPoints.Length)];
+		ServerEntity thisPlayer = GameManager.CreateEntity<ServerPlayerEntity>(
+			new ListDictionary{
+				{"NetPeer", args.Peer}
+			}
+		);
+		thisPlayer.Position = new Vector2(spawnPoint.y, spawnPoint.y);
+		thisPlayer.SendCreateEntity();
+		thisPlayer.GiveControl(args.Peer);
 	}
 
 	private static void OnConnectionRequest(ConnectionRequest request)

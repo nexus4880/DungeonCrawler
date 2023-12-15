@@ -23,7 +23,7 @@ public abstract class Item : INetSerializable
 	}
 
 	/// <param name="properties"></param>
-	public virtual void Initialize(Queue properties)
+	public virtual void Initialize(IDictionary properties)
 	{
 	}
 }

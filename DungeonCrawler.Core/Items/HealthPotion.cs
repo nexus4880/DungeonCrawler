@@ -25,9 +25,9 @@ public class HealthPotion : Item
 		this.Duration = reader.GetFloat();
 	}
 
-	public override void Initialize(Queue properties)
+	public override void Initialize(IDictionary properties)
 	{
-		this.Amount = properties.PopValue(100f);
-		this.Duration = properties.PopValue(3f);
+		this.Amount = properties.GetValueAs<Single>("Amount", 100f);
+		this.Duration = properties.GetValueAs<Single>("Duration", 3f);
 	}
 }

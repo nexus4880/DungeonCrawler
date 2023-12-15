@@ -1,15 +1,14 @@
 using DungeonCrawler.Core;
 using DungeonCrawler.Core.Entities;
-using DungeonCrawler.Client.Renderers;
 using Raylib_CsLo;
 using DungeonCrawler.Core.Packets;
+using DungeonCrawler.Core.Entities.EntityComponents.Renderers;
 namespace DungeonCrawler.Client;
 
 public static class GameManager
 {
     private static Dictionary<Guid, Entity> _entities = new Dictionary<Guid, Entity>();
     public static PlayerEntity localPlayer;
-    private static Dictionary<Guid, DroppedLootItem> _lootItems = new Dictionary<Guid, DroppedLootItem>();
 
     public static void AddEntity(Entity entity)
     {
@@ -18,12 +17,7 @@ public static class GameManager
 
     public static Entity GetEntityByID(Guid id)
     {
-        if (!_entities.TryGetValue(id, out Entity value))
-        {
-            return null;
-        }
-
-        return value;
+        return _entities.GetValueOrDefault(id);
     }
 
     public static void RemoveEntity(Guid entityId)
@@ -32,16 +26,6 @@ public static class GameManager
         {
             entity.OnDestroy();
         }
-    }
-
-    public static void AddLootItem(DroppedLootItem lootItem)
-    {
-        _lootItems[lootItem.SpawnId] = lootItem;
-    }
-
-    public static void RemoveLootItem(Guid lootItemId)
-    {
-        _lootItems.Remove(lootItemId, out _);
     }
 
     public static void Update()

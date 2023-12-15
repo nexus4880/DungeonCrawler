@@ -8,6 +8,8 @@ using LiteNetLib.Utils;
 using System.Numerics;
 using DungeonCrawler.Client.Renderers;
 using System.IO.Compression;
+using System.Collections.Specialized;
+using System.Collections;
 
 namespace DungeonCrawler.Client;
 
@@ -94,7 +96,6 @@ public static class Networking
 		{
 			Entity entity = args.PacketReader.GetDeserializable<Entity>();
 			Console.WriteLine($"[OnEntityCreated] {entity.EntityId} was created at {entity.Position} of type '{entity.GetType()}'");
-			entity.AddComponent<TextureRenderer>("assets/textures/checkmark.png");
 			GameManager.AddEntity(entity);
 		}
 		catch (Exception ex)
@@ -105,7 +106,7 @@ public static class Networking
 
 	private static void OnInitializeWorld(InitializeWorldPacket packet, UserPacketEventArgs args)
 	{
-		Console.WriteLine($"[OnInitializeWorld] {packet.EntitiesCount} entities | {packet.LootItemsCount} loot items");
+		Console.WriteLine($"[OnInitializeWorld] {packet.EntitiesCount} entities");
 		receievedGameState = true;
 		for (Int32 i = 0; i < packet.EntitiesCount; i++)
 		{
@@ -116,25 +117,7 @@ public static class Networking
 				GameManager.localPlayer.NetPeer = args.Peer;
 			}
 
-			if (entity is DroppedLootItem droppedLoot)
-			{
-				entity.AddComponent<TextureRenderer>(droppedLoot.TexturePath);
-			}
-			else
-			{
-				entity.AddComponent<TextureRenderer>("assets/textures/checkmark.png");
-			}
-
 			GameManager.AddEntity(entity);
-		}
-
-
-		for (Int32 i = 0; i < packet.LootItemsCount; i++)
-		{
-			DroppedLootItem lootItem = args.PacketReader.GetDeserializable<DroppedLootItem>();
-			System.Console.WriteLine(lootItem.Item.Name);
-			lootItem.AddComponent<TextureRenderer>($"assets/textures/{lootItem.Item.Name}");
-			GameManager.AddLootItem(lootItem);
 		}
 
 		Networking.PacketProcessor.Write(Networking.Writer, new WorldLoadedPacket { });
@@ -142,13 +125,15 @@ public static class Networking
 
 	private static void OnEntityMoved(EntityMovedPacket packet, UserPacketEventArgs args)
 	{
-		Console.WriteLine($"[OnEntityMoved] {packet.EntityId} moved to {packet.Position}");
-		if (GameManager.GetEntityByID(packet.EntityId) == null)
+		Entity entity = GameManager.GetEntityByID(packet.EntityId);
+		if (entity is null)
 		{
+			Console.WriteLine($"[OnEntityMoved] {packet.EntityId} doesn't exist on client");
+
 			return;
 		}
 
-		GameManager.GetEntityByID(packet.EntityId).Position = packet.Position;
+		entity.Position = packet.Position;
 	}
 
 	public static void Update()
@@ -156,6 +141,7 @@ public static class Networking
 		Networking.NetManager.PollEvents();
 		if (Networking.Writer.Length > 0)
 		{
+			Console.WriteLine($"Sending {Networking.Writer.Length} bytes");
 			Networking.LocalPeer.Send(Networking.Writer, DeliveryMethod.Unreliable);
 			Networking.Writer.Reset();
 		}

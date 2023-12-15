@@ -3,7 +3,6 @@ using DungeonCrawler.Client;
 using DungeonCrawler.Core;
 using DungeonCrawler.Core.Entities;
 using DungeonCrawler.Core.Entities.EntityComponents;
-using DungeonCrawler.Core.Helpers;
 using DungeonCrawler.Core.Items;
 using LiteNetLib;
 
@@ -34,10 +33,12 @@ if (Networking.LocalPeer.ConnectionState != ConnectionState.Connected)
 	throw new Exception("Failed to connect to server");
 }
 
-
+SetConfigFlags(Raylib_CsLo.ConfigFlags.FLAG_VSYNC_HINT | Raylib_CsLo.ConfigFlags.FLAG_MSAA_4X_HINT | Raylib_CsLo.ConfigFlags.FLAG_WINDOW_RESIZABLE);
 InitWindow(1280, 720, "DungeonCrawler");
 while (!WindowShouldClose())
 {
+	int width = GetRenderWidth();
+	int height = GetRenderHeight();
 	Networking.Update();
 	if (Networking.receievedGameState)
 	{
@@ -46,6 +47,11 @@ while (!WindowShouldClose())
 
 	BeginDrawing();
 	ClearBackground(BLACK);
+	for (int i = 0; i < width; i += 32)
+	{
+		DrawLine(i, 0, i, height, YELLOW);
+	}
+
 	if (Networking.receievedGameState)
 	{
 		GameManager.Draw();

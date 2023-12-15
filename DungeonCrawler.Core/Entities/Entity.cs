@@ -30,6 +30,12 @@ public abstract class Entity : INetSerializable
 		for (Byte i = 0; i < componentsCount; i++)
 		{
 			BaseEntityComponent component = reader.GetDeserializable<BaseEntityComponent>();
+			component.Owner = this;
+			if (component is IClientInitializable clientInitializable)
+			{
+				clientInitializable.ClientInitialize();
+			}
+
 			this._entityComponents.Add(component);
 		}
 	}
@@ -41,7 +47,7 @@ public abstract class Entity : INetSerializable
 	{
 	}
 
-	public virtual void Initialize(Queue properties)
+	public virtual void Initialize(IDictionary properties)
 	{
 	}
 
@@ -54,7 +60,7 @@ public abstract class Entity : INetSerializable
 		return this._entityComponents.FirstOrDefault(comp => comp is T) as T;
 	}
 
-	public virtual T AddComponent<T>(params Object[] properties) where T : BaseEntityComponent, new()
+	public virtual T AddComponent<T>(IDictionary properties) where T : BaseEntityComponent, new()
 	{
 		Guid componentId = Guid.NewGuid();
 		T component = new T
@@ -63,8 +69,7 @@ public abstract class Entity : INetSerializable
 			ComponentId = componentId
 		};
 
-		Queue props = new Queue(properties);
-		component.Initialize(props);
+		component.Initialize(properties);
 		this._entityComponents.Add(component);
 
 		return component;

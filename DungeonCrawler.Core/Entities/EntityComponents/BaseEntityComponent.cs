@@ -9,7 +9,7 @@ public abstract class BaseEntityComponent : INetSerializable
 	public Entity Owner { get; set; }
 	public Guid ComponentId { get; set; }
 
-	public virtual void Initialize(Queue properties)
+	public virtual void Initialize(IDictionary properties)
 	{
 	}
 

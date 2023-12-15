@@ -25,9 +25,9 @@ public class SpeedPotion : Item
 		this.Multiplier = reader.GetFloat();
 	}
 
-	public override void Initialize(Queue properties)
+	public override void Initialize(IDictionary properties)
 	{
-		this.Duration = properties.PopValue(15f);
-		this.Multiplier = properties.PopValue(1.5f);
+		this.Duration = properties.GetValueAs<Single>("Duration", 15f);
+		this.Multiplier = properties.GetValueAs<Single>("Multiplier", 1.5f);
 	}
 }

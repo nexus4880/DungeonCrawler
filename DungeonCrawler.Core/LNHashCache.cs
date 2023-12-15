@@ -31,24 +31,15 @@ public static class LNHashCache
 	{
 		HashAsAttribute hashAsAttribute = type.GetCustomAttribute<HashAsAttribute>();
 		UInt64 hash = StringHelper.HashString(hashAsAttribute?.Value ?? type.ToString());
-		Console.WriteLine($"Registered Type: {type} | {hash}");
+		String text =
+			hashAsAttribute is not null ?
+			$"Registered Type: '{type}' with fixed hash {hash}" :
+			$"Registered Type: '{type}' | {hash}";
+		Console.WriteLine(text);
 		LNHashCache._typeToHash[type] = hash;
 		LNHashCache._hashToType[hash] = type;
 
 		return hash;
-	}
-
-	public static void RegisterTypeWithHash<T>(String hashText)
-	{
-		LNHashCache.RegisterTypeWithHash(typeof(T), hashText);
-	}
-
-	public static void RegisterTypeWithHash(Type type, String hashText)
-	{
-		UInt64 hash = StringHelper.HashString(hashText);
-		Console.WriteLine($"Registered Type with fixed hash: {type} | {hash} ('{hashText}')");
-		LNHashCache._typeToHash[type] = hash;
-		LNHashCache._hashToType[hash] = type;
 	}
 
 	public static UInt64 GetHash<T>()
@@ -64,6 +55,11 @@ public static class LNHashCache
 		}
 
 		return hash;
+	}
+
+	public static Type GetTypeByName(String hashText)
+	{
+		return LNHashCache.GetType(StringHelper.HashString(hashText));
 	}
 
 	public static Type GetType(UInt64 hash)

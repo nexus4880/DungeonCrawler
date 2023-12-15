@@ -2,12 +2,10 @@ using System.Collections;
 using System.Numerics;
 using DungeonCrawler.Core;
 using DungeonCrawler.Core.Attributes;
-using DungeonCrawler.Core.Entities;
 using DungeonCrawler.Core.Entities.EntityComponents;
 using DungeonCrawler.Core.Extensions;
-using DungeonCrawler.Core.Packets;
+using DungeonCrawler.Server.Entities.EntityComponents.Renderers;
 using LiteNetLib;
-using LiteNetLib.Utils;
 
 namespace DungeonCrawler.Server.Entities;
 
@@ -17,10 +15,16 @@ public class ServerPlayerEntity : ServerEntity
 	public NetPeer NetPeer { get; set; }
 	public PlayerInputs CurrentInputs { get; set; }
 
-	public override void Initialize(Queue properties)
+	public override void Initialize(IDictionary properties)
 	{
 		base.Initialize(properties);
-		this.NetPeer = properties.PopValueOrThrow<NetPeer>();
+		this.NetPeer = properties.GetValueAsOrThrow<NetPeer>("NetPeer");
+		this.AddComponent<HealthComponent>(new Hashtable { { "Value", 100f } });
+		this.AddComponent<ServerCircleRenderer>(new Hashtable {
+			{ "Radius", 16f },
+			{ "Color", 0xFFFFFFFF },
+			{ "Filled", false }
+		});
 	}
 
 	public override void Update(float deltaTime)
@@ -61,9 +65,7 @@ public class ServerPlayerEntity : ServerEntity
 			}
 
 			this.Position += movement;
-			NetDataWriter writer = new NetDataWriter();
-			GameServer.PacketProcessor.Write(writer, new EntityMovedPacket { EntityId = this.EntityId, Position = this.Position });
-			GameServer.NetManager.SendToAll(writer, DeliveryMethod.ReliableOrdered);
+			this.SendUpdatePosition();
 		}
 	}
 }

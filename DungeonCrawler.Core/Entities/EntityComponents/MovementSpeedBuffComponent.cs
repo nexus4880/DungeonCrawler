@@ -9,10 +9,10 @@ public class MovementSpeedBuffComponent : BaseEntityComponent
     public Single Value { get; set; }
     public Single Duration { get; set; }
 
-    public override void Initialize(Queue properties)
+    public override void Initialize(IDictionary properties)
     {
-        this.Value = properties.PopValueOrThrow<Single>();
-        this.Duration = properties.PopValueOrThrow<Single>();
+        this.Value = properties.GetValueAsOrThrow<Single>("Value");
+        this.Duration = properties.GetValueAsOrThrow<Single>("Duration");
     }
 
     public override void Serialize(NetDataWriter writer)
