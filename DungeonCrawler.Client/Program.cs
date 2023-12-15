@@ -37,8 +37,6 @@ SetConfigFlags(Raylib_CsLo.ConfigFlags.FLAG_VSYNC_HINT | Raylib_CsLo.ConfigFlags
 InitWindow(1280, 720, "DungeonCrawler");
 while (!WindowShouldClose())
 {
-	int width = GetRenderWidth();
-	int height = GetRenderHeight();
 	Networking.Update();
 	if (Networking.receievedGameState)
 	{
@@ -47,11 +45,6 @@ while (!WindowShouldClose())
 
 	BeginDrawing();
 	ClearBackground(BLACK);
-	for (int i = 0; i < width; i += 32)
-	{
-		DrawLine(i, 0, i, height, YELLOW);
-	}
-
 	if (Networking.receievedGameState)
 	{
 		GameManager.Draw();

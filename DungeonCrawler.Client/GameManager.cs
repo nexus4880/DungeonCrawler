@@ -5,10 +5,15 @@ using DungeonCrawler.Core.Packets;
 using DungeonCrawler.Core.Entities.EntityComponents.Renderers;
 namespace DungeonCrawler.Client;
 
+using TileSize = (Int32 width, Int32 height);
+
 public static class GameManager
 {
     private static Dictionary<Guid, Entity> _entities = new Dictionary<Guid, Entity>();
     public static PlayerEntity localPlayer;
+    public static ClientBaseTile[,] tiles;
+    public static TileSize tileSize;
+    public static Camera2D camera = new Camera2D { zoom = 1f };
 
     public static void AddEntity(Entity entity)
     {
@@ -30,11 +35,14 @@ public static class GameManager
 
     public static void Update()
     {
+        camera.offset.X = GetRenderWidth() / 2;
+        camera.offset.Y = GetRenderHeight() / 2;
         if (localPlayer is null)
         {
             return;
         }
 
+        camera.target = localPlayer.Position;
         var currentInputs = new PlayerInputs
         {
             MoveUp = IsKeyDown(KeyboardKey.KEY_W),
@@ -56,6 +64,12 @@ public static class GameManager
 
     public static void Draw()
     {
+        BeginMode2D(camera);
+        foreach (var tile in GameManager.tiles)
+        {
+            tile.Draw();
+        }
+
         foreach (var entity in _entities.Values)
         {
             BaseRenderer renderer = entity.GetComponent<BaseRenderer>();
@@ -64,5 +78,7 @@ public static class GameManager
                 renderer.Draw();
             }
         }
+
+        EndMode2D();
     }
 }

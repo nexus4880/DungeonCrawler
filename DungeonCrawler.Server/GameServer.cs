@@ -7,6 +7,7 @@ using DungeonCrawler.Core;
 using DungeonCrawler.Core.Entities;
 using DungeonCrawler.Core.Extensions;
 using DungeonCrawler.Core.Items;
+using DungeonCrawler.Core.Map;
 using DungeonCrawler.Core.Packets;
 using DungeonCrawler.Server.Entities;
 using DungeonCrawler.Server.Entities.EntityComponents.Renderers;
@@ -25,11 +26,17 @@ public static class GameServer
 	public static NetPacketProcessor PacketProcessor { get; } = new NetPacketProcessor();
 	private static Byte[] _assetsBuffer;
 	private static TiledMap _map;
+	private static List<TiledTileset> _tiledSets = [];
+	private static BaseTile[,] _tiles;
 
 	public static void Initialize(IPAddress ipv4, IPAddress ipv6, Int32 port)
 	{
 		Console.WriteLine("Loading map...");
 		GameServer._map = new TiledMap("/home/nicholas/Tiled/untitled.tmx");
+		foreach (String file in Directory.GetFiles("/home/nicholas/Tiled/tilesets"))
+		{
+			_tiledSets.Add(new TiledTileset(file));
+		}
 
 		if (!Directory.Exists("assets"))
 		{
@@ -58,6 +65,39 @@ public static class GameServer
 
 		Console.WriteLine($"Started server on {ip}");
 
+		GameServer._tiles = new BaseTile[GameServer._map.Width, GameServer._map.Height];
+		foreach (TiledLayer layer in _map.Layers)
+		{
+			if (layer.data is not null)
+			{
+				for (int i = 0; i < layer.data.Length; i++)
+				{
+					var tileSet = _map.GetTiledMapTileset(layer.data[i]);
+					if (tileSet is null)
+					{
+						throw new Exception("Why was it not found?");
+					}
+
+					// TODO: This is definitely not right, but since they're both 16 right now it's okay
+					Int32 x = i / _map.Width;
+					Int32 y = i % _map.Width;
+					BaseTile baseTile = new BaseTile { X = x, Y = y, TilesetSource = $"assets/{tileSet.source.Replace("tsx", "png")}" };
+					GameServer._tiles[x, y] = baseTile;
+				}
+			}
+		}
+
+		for (Int32 y = 0; y < GameServer._map.Height; y++)
+		{
+			for (Int32 x = 0; x < GameServer._map.Width; x++)
+			{
+				if (GameServer._tiles is null)
+				{
+					GameServer._tiles[x, y] = new BaseTile { X = x, Y = y, TilesetSource = "" };
+				}
+			}
+		}
+
 		foreach (TiledObject lootPoint in GameServer._map.GetLayerByName("Loot").objects)
 		{
 			Type itemType = LNHashCache.GetTypeByName(lootPoint.type);
@@ -77,6 +117,7 @@ public static class GameServer
 			droppedItem.AddComponent<ServerTextureRenderer>(itemProperties);
 			droppedItem.Position = new Vector2(lootPoint.x, lootPoint.y);
 		}
+
 	}
 
 	public static void SubscribePacket<T>(Action<T, UserPacketEventArgs> callback) where T : class, new()
@@ -125,12 +166,24 @@ public static class GameServer
 		GameServer.PacketProcessor.Write(writer, new InitializeWorldPacket
 		{
 			EntitiesCount = entities.Count,
-			LocalPlayerEntityId = Guid.Empty
+			LocalPlayerEntityId = Guid.Empty,
+			WorldWidth = _map.Width,
+			WorldHeight = _map.Height,
+			TileWidth = _map.TileWidth,
+			TileHeight = _map.TileHeight
 		});
 
 		foreach (Entity entity in entities)
 		{
 			writer.PutDeserializable(entity);
+		}
+
+		for (Int32 y = 0; y < GameServer._map.Height; y++)
+		{
+			for (Int32 x = 0; x < GameServer._map.Width; x++)
+			{
+				writer.Put(GameServer._tiles[x, y]);
+			}
 		}
 
 		args.Peer.Send(writer, DeliveryMethod.ReliableOrdered);

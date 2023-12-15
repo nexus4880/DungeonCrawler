@@ -58,13 +58,14 @@ public class ServerPlayerEntity : ServerEntity
 
 		if (movement.Length() != 0f)
 		{
+			movement *= 100f;
 			MovementSpeedBuffComponent movementSpeedBuffComponent = this.GetComponent<MovementSpeedBuffComponent>();
 			if (movementSpeedBuffComponent is not null)
 			{
 				movement *= movementSpeedBuffComponent.Value;
 			}
 
-			this.Position += movement;
+			this.Position += movement * deltaTime;
 			this.SendUpdatePosition();
 		}
 	}
