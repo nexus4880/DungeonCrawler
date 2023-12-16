@@ -142,16 +142,13 @@ public static class Networking
 			GameManager.AddEntity(entity);
 		}
 
-		GameManager.tiles = new ClientBaseTile[packet.WorldWidth, packet.WorldHeight];
+		GameManager.tiles = new List<ClientBaseTile>(packet.WorldWidth * packet.WorldHeight);
 		GameManager.tileSize = (packet.TileWidth, packet.TileHeight);
-		for (Int32 y = 0; y < packet.WorldHeight; y++)
+		for (Int32 i = 0; i < packet.TileCount; i++)
 		{
-			for (Int32 x = 0; x < packet.WorldWidth; x++)
-			{
-				ClientBaseTile tile = args.PacketReader.Get(() => new ClientBaseTile());
-				GameManager.tiles[x, y] = tile;
-				tile.Initialize();
-			}
+			ClientBaseTile tile = args.PacketReader.Get(() => new ClientBaseTile());
+			GameManager.tiles.Add(tile);
+			tile.Initialize();
 		}
 
 		Networking.PacketProcessor.Write(Networking.Writer, new WorldLoadedPacket { });

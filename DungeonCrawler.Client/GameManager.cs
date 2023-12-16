@@ -11,7 +11,7 @@ public static class GameManager
 {
     private static Dictionary<Guid, Entity> _entities = new Dictionary<Guid, Entity>();
     public static PlayerEntity localPlayer;
-    public static ClientBaseTile[,] tiles;
+    public static List<ClientBaseTile> tiles = new List<ClientBaseTile>();
     public static TileSize tileSize;
     public static Camera2D camera = new Camera2D { zoom = 1f };
     public static AssetHandler<Texture> TextureHandler { get; set; }

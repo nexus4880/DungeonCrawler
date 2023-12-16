@@ -1,3 +1,4 @@
+using System.Numerics;
 using DungeonCrawler.Core.Map;
 
 namespace DungeonCrawler.Client;
@@ -22,7 +23,12 @@ public class ClientBaseTile : BaseTile
         Int32 y = this.WorldTilePosition.Y * GameManager.tileSize.height;
         if (_initialized)
         {
-            DrawTexture(this._texture, x, y, WHITE);
+            DrawTexturePro(this._texture,
+             new Rectangle(this.SourceRectPosition.X, this.SourceRectPosition.Y, this.SourceRectPosition.Width, this.SourceRectPosition.Height),
+              new Rectangle { X = x, Y = y, width = GameManager.tileSize.width, height = GameManager.tileSize.height },
+               Vector2.Zero,
+               0f,
+               BLANK);
         }
         else
         {
