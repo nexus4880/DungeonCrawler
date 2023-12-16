@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="16" height="16" tilewidth="32" tileheight="32" infinite="0" nextlayerid="21" nextobjectid="52">
+ <tileset firstgid="1" source="tilesets/grass.tsx"/>
+ <tileset firstgid="65" source="tilesets/plant.tsx"/>
+ <tileset firstgid="321" source="tilesets/props.tsx"/>
+ <tileset firstgid="577" source="tilesets/shadow.tsx"/>
+ <tileset firstgid="833" source="tilesets/shadow_plant.tsx"/>
+ <objectgroup id="7" name="SpawnPoints">
+  <object id="37" name="SpawnPoint" type="SpawnPoint" x="64" y="64">
+   <point/>
+  </object>
+  <object id="38" name="SpawnPoint" type="SpawnPoint" x="448" y="64">
+   <point/>
+  </object>
+  <object id="39" name="SpawnPoint" type="SpawnPoint" x="448" y="448">
+   <point/>
+  </object>
+  <object id="40" name="SpawnPoint" type="SpawnPoint" x="64" y="448">
+   <point/>
+  </object>
+ </objectgroup>
+ <objectgroup id="8" name="Loot" visible="0">
+  <object id="47" name="InstantHealthPotion" type="DungeonCrawler.Core.Items.InstantHealthPotion" x="266" y="198">
+   <properties>
+    <property name="Amount" type="float" value="69.42"/>
+    <property name="TexturePath" value="assets/textures/molotov.png"/>
+   </properties>
+   <point/>
+  </object>
+ </objectgroup>
+ <layer id="12" name="Ground" width="16" height="16">
+  <properties>
+   <property name="LayerIndex" type="int" value="-5000"/>
+  </properties>
+  <data encoding="base64" compression="zlib">
+   eJzty6cBACAQALFHUAzFUAxl/ym5Gd6CiIwREfN9j7Jw8AiKH5GQURS/oqFjKP7EwsZR/AuGPgIZ
+  </data>
+ </layer>
+ <layer id="19" name="Tile Layer 5" width="16" height="16">
+  <properties>
+   <property name="LayerIndex" type="int" value="1"/>
+  </properties>
+  <data encoding="base64" compression="zlib">
+   eJxjYGBguMHEwHATiMkFL4B6X1KgfxQMDJgyGmcjHgAA0KAEIQ==
+  </data>
+ </layer>
+ <layer id="20" name="Tile Layer 6" width="16" height="16">
+  <properties>
+   <property name="LayerIndex" type="int" value="2"/>
+  </properties>
+  <data encoding="base64" compression="zlib">
+   eJxjYGBguMHIQBF4QaH+UUAYFDEzMBQDcQkQlzKTrr8JqKcZiFuAuJUM/aNgeAIAcP8Ftw==
+  </data>
+ </layer>
+ <layer id="16" name="FoliageLayer1" width="16" height="16">
+  <properties>
+   <property name="LayerIndex" type="int" value="3"/>
+  </properties>
+  <data encoding="base64" compression="zlib">
+   eJxjYBj+wBGInYDYGYhdgNiVRP2BQBwExMFAHALEoSTqTwTiJCBOBuIUIE4lUf8SIC4C4mIgLgHiUhL1w0AzELcAcSsZehdB3bGITLtHweAEAP2zCsQ=
+  </data>
+ </layer>
+ <layer id="18" name="Extra1" width="16" height="16">
+  <properties>
+   <property name="LayerIndex" type="int" value="4"/>
+  </properties>
+  <data encoding="base64" compression="zlib">
+   eJxjYBh4cJpxoF0wcoAZE4I9ZTTcRzwAAGrcAZo=
+  </data>
+ </layer>
+ <layer id="17" name="FoliageLayer2" width="16" height="16" tintcolor="#000000">
+  <properties>
+   <property name="LayerIndex" type="int" value="5"/>
+  </properties>
+  <data encoding="base64" compression="zlib">
+   eJxjYBgFo2AUjFQAAAQAAAE=
+  </data>
+ </layer>
+</map>

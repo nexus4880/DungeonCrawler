@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<template>
+ <object name="InstantHealthPotion" type="DungeonCrawler.Core.Items.InstantHealthPotion">
+  <properties>
+   <property name="Amount" type="float" value="100.0"/>
+   <property name="TexturePath" value="assets/textures/molotov.png"/>
+  </properties>
+  <point/>
+ </object>
+</template>

@@ -31,8 +31,8 @@ public static class GameServer
 	public static void Initialize(IPAddress ipv4, IPAddress ipv6, Int32 port)
 	{
 		Console.WriteLine("Loading map...");
-		GameServer._map = new TiledMap("/home/nicholas/Tiled/untitled.tmx");
-		Dictionary<Int32, TiledTileset> tilesets = GameServer._map.GetTiledTilesets("/home/nicholas/Tiled/");
+		GameServer._map = new TiledMap("./map/untitled.tmx");
+		Dictionary<Int32, TiledTileset> tilesets = GameServer._map.GetTiledTilesets("./map/");
 		if (!Directory.Exists("assets"))
 		{
 			throw new Exception("Missing assets directory");
@@ -77,7 +77,7 @@ public static class GameServer
 				TiledSourceRect rect = GameServer._map.GetSourceRect(tiledMapTileset, tileset, gid);
 				if (rect is null)
 				{
-					rect = new TiledSourceRect() { x = 0, y = 0, width = 32, height = 32 };
+					continue;
 				}
 
 				int x = i % tileLayer.width;
@@ -93,6 +93,7 @@ public static class GameServer
 			}
 		}
 
+		// TODO: Later I will make this search every layer
 		foreach (TiledObject lootPoint in GameServer._map.GetLayerByName("Loot").objects)
 		{
 			Type itemType = LNHashCache.GetTypeByName(lootPoint.type);
