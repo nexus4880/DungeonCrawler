@@ -10,10 +10,10 @@ public class ClientBaseTile : BaseTile
 
     public unsafe void Initialize()
     {
-        Image image = GameManager.ImageHandler.GetAsset($"assets/{this.TilesetSource}");
-        Image target = GenImageColor(GameManager.tileSize.width, GameManager.tileSize.height, DARKGRAY);
-        ImageDraw(&target, image, new Rectangle(this.SourceRectPosition.X, this.SourceRectPosition.Y, this.SourceRectPosition.Width, this.SourceRectPosition.Height), new Rectangle(0, 0, GameManager.tileSize.width, GameManager.tileSize.height), WHITE);
-        this._texture = LoadTextureFromImage(target);
+        Image sourceImage = GameManager.ImageHandler.GetAsset($"assets/{this.TilesetSource}");
+        Image imageBuffer = GenImageColor(GameManager.tileSize.width, GameManager.tileSize.height, BLANK);
+        ImageDraw(&imageBuffer, sourceImage, new Rectangle(this.SourceRectPosition.X, this.SourceRectPosition.Y, this.SourceRectPosition.Width, this.SourceRectPosition.Height), new Rectangle(0, 0, GameManager.tileSize.width, GameManager.tileSize.height), WHITE);
+        this._texture = LoadTextureFromImage(imageBuffer);
         this._initialized = true;
     }
 
@@ -23,12 +23,7 @@ public class ClientBaseTile : BaseTile
         Int32 y = this.WorldTilePosition.Y * GameManager.tileSize.height;
         if (_initialized)
         {
-            DrawTexturePro(this._texture,
-             new Rectangle(this.SourceRectPosition.X, this.SourceRectPosition.Y, this.SourceRectPosition.Width, this.SourceRectPosition.Height),
-              new Rectangle { X = x, Y = y, width = GameManager.tileSize.width, height = GameManager.tileSize.height },
-               Vector2.Zero,
-               0f,
-               BLANK);
+            DrawTexture(this._texture, x, y, WHITE);
         }
         else
         {

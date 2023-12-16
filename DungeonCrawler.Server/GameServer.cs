@@ -26,7 +26,7 @@ public static class GameServer
 	public static NetPacketProcessor PacketProcessor { get; } = new NetPacketProcessor();
 	private static Byte[] _assetsBuffer;
 	private static TiledMap _map;
-	private static BaseTile[,] _tiles;
+	private static List<BaseTile> _tiles;
 
 	public static void Initialize(IPAddress ipv4, IPAddress ipv6, Int32 port)
 	{
@@ -60,26 +60,36 @@ public static class GameServer
 
 		Console.WriteLine($"Started server on {ip}");
 
-		GameServer._tiles = new BaseTile[GameServer._map.Width, GameServer._map.Height];
-		foreach (TiledLayer layer in _map.Layers)
+		GameServer._tiles = new List<BaseTile>(GameServer._map.Width * GameServer._map.Height);
+		List<TiledLayer> sortedTileLayers = _map.Layers.Where(layer => layer.data is not null && layer.properties.Parse().GetValueAs<int>("LayerIndex", -512) != -512).OrderBy(layer => layer.properties.Parse().GetValueAs<int>("LayerIndex")).ToList();
+		foreach (TiledLayer tileLayer in sortedTileLayers)
 		{
-			if (layer.data is not null)
+			for (int i = 0; i < tileLayer.data.Length; i++)
 			{
-				for (int i = 0; i < layer.data.Length; i++)
+				Int32 gid = tileLayer.data[i];
+				if (gid is 0)
 				{
-					Int32 gid = layer.data[i];
-					TiledMapTileset tiledMapTileset = GameServer._map.GetTiledMapTileset(gid);
-					TiledTileset tileset = tilesets[tiledMapTileset.firstgid];
-					TiledSourceRect rect = GameServer._map.GetSourceRect(tiledMapTileset, tileset, gid);
-					if (rect is null)
-					{
-						rect = new TiledSourceRect() { x = 0, y = 0, width = 32, height = 32 };
-					}
-
-					int x = i % layer.width;
-					int y = i / layer.width;
-					GameServer._tiles[x, y] = new BaseTile { WorldTilePosition = new Point { X = x, Y = y }, SourceRectPosition = new Rectangle { X = rect.x, Y = rect.y, Width = rect.width, Height = rect.height }, TilesetSource = tiledMapTileset.source.Replace("tsx", "png") };
+					continue;
 				}
+
+				TiledMapTileset tiledMapTileset = GameServer._map.GetTiledMapTileset(gid);
+				TiledTileset tileset = tilesets[tiledMapTileset.firstgid];
+				TiledSourceRect rect = GameServer._map.GetSourceRect(tiledMapTileset, tileset, gid);
+				if (rect is null)
+				{
+					rect = new TiledSourceRect() { x = 0, y = 0, width = 32, height = 32 };
+				}
+
+				int x = i % tileLayer.width;
+				int y = i / tileLayer.width;
+				BaseTile tile = new BaseTile
+				{
+					WorldTilePosition = new Point { X = x, Y = y },
+					SourceRectPosition = new Rectangle { X = rect.x, Y = rect.y, Width = rect.width, Height = rect.height },
+					Layer = tileLayer.properties.Parse().GetValueAsOrThrow<Int32>("LayerIndex"),
+					TilesetSource = tiledMapTileset.source.Replace("tsx", "png")
+				};
+				GameServer._tiles.Add(tile);
 			}
 		}
 
@@ -102,7 +112,6 @@ public static class GameServer
 			droppedItem.AddComponent<ServerTextureRenderer>(itemProperties);
 			droppedItem.Position = new Vector2(lootPoint.x, lootPoint.y);
 		}
-
 	}
 
 	public static void SubscribePacket<T>(Action<T, UserPacketEventArgs> callback) where T : class, new()
@@ -155,7 +164,8 @@ public static class GameServer
 			WorldWidth = _map.Width,
 			WorldHeight = _map.Height,
 			TileWidth = _map.TileWidth,
-			TileHeight = _map.TileHeight
+			TileHeight = _map.TileHeight,
+			TileCount = _tiles.Count
 		});
 
 		foreach (Entity entity in entities)
@@ -163,12 +173,9 @@ public static class GameServer
 			writer.PutDeserializable(entity);
 		}
 
-		for (Int32 y = 0; y < GameServer._map.Height; y++)
+		foreach (var tile in GameServer._tiles)
 		{
-			for (Int32 x = 0; x < GameServer._map.Width; x++)
-			{
-				writer.Put(GameServer._tiles[x, y]);
-			}
+			writer.Put(tile);
 		}
 
 		args.Peer.Send(writer, DeliveryMethod.ReliableOrdered);
