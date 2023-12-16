@@ -33,7 +33,7 @@ if (Networking.LocalPeer.ConnectionState != ConnectionState.Connected)
 	throw new Exception("Failed to connect to server");
 }
 
-SetConfigFlags(Raylib_CsLo.ConfigFlags.FLAG_VSYNC_HINT | Raylib_CsLo.ConfigFlags.FLAG_MSAA_4X_HINT | Raylib_CsLo.ConfigFlags.FLAG_WINDOW_RESIZABLE);
+SetConfigFlags(ConfigFlags.FLAG_VSYNC_HINT | ConfigFlags.FLAG_MSAA_4X_HINT | ConfigFlags.FLAG_WINDOW_RESIZABLE);
 InitWindow(1280, 720, "DungeonCrawler");
 while (!WindowShouldClose())
 {

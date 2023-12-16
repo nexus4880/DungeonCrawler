@@ -14,6 +14,8 @@ public static class GameManager
     public static ClientBaseTile[,] tiles;
     public static TileSize tileSize;
     public static Camera2D camera = new Camera2D { zoom = 1f };
+    public static AssetHandler<Texture> TextureHandler { get; set; }
+    public static AssetHandler<Image> ImageHandler { get; set; }
 
     public static void AddEntity(Entity entity)
     {

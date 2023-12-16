@@ -9,23 +9,15 @@ namespace DungeonCrawler.Client.Renderers;
 [HashAs("DungeonCrawler.Core.Entities.EntityComponents.Renderers.TextureRenderer")]
 public class ClientTextureRenderer : TextureRenderer, IClientInitializable
 {
-    public Texture texture;
+    private Texture _texture;
 
-    public unsafe void ClientInitialize()
+    public void ClientInitialize()
     {
-        Byte* pBytes = Networking.currentVFS.PinnedBytes(this.TexturePath, out Int32 length);
-        Image img = LoadImageFromMemory(".png", pBytes, length);
-        this.texture = LoadTextureFromImage(img);
+        this._texture = GameManager.TextureHandler.GetAsset(this.TexturePath);
     }
 
     public override void Draw()
     {
-        DrawTexture(this.texture, (Int32)this.Owner.Position.X, (Int32)this.Owner.Position.Y, WHITE);
-    }
-
-    public override void OnComponentRemoved()
-    {
-        base.OnComponentRemoved();
-        UnloadTexture(this.texture);
+        DrawTexture(this._texture, (Int32)this.Owner.Position.X, (Int32)this.Owner.Position.Y, WHITE);
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Drawing;
+using System.Numerics;
 using DungeonCrawler.Core.Items;
 using LiteNetLib.Utils;
 
@@ -58,5 +59,15 @@ public static class NetDataReaderExtensions
 	public static Vector2 GetVector2(this NetDataReader reader)
 	{
 		return new Vector2(reader.GetFloat(), reader.GetFloat());
+	}
+
+	public static Point GetPoint(this NetDataReader reader)
+	{
+		return new Point(reader.GetInt(), reader.GetInt());
+	}
+
+	public static Rectangle GetRectangle(this NetDataReader reader)
+	{
+		return new Rectangle(reader.GetInt(), reader.GetInt(), reader.GetInt(), reader.GetInt());
 	}
 }

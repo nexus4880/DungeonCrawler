@@ -1,12 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Specialized;
+using System.Drawing;
 using System.IO.Compression;
 using System.Net;
 using System.Numerics;
 using DungeonCrawler.Core;
 using DungeonCrawler.Core.Entities;
 using DungeonCrawler.Core.Extensions;
-using DungeonCrawler.Core.Items;
 using DungeonCrawler.Core.Map;
 using DungeonCrawler.Core.Packets;
 using DungeonCrawler.Server.Entities;
@@ -26,18 +26,13 @@ public static class GameServer
 	public static NetPacketProcessor PacketProcessor { get; } = new NetPacketProcessor();
 	private static Byte[] _assetsBuffer;
 	private static TiledMap _map;
-	private static List<TiledTileset> _tiledSets = [];
 	private static BaseTile[,] _tiles;
 
 	public static void Initialize(IPAddress ipv4, IPAddress ipv6, Int32 port)
 	{
 		Console.WriteLine("Loading map...");
 		GameServer._map = new TiledMap("/home/nicholas/Tiled/untitled.tmx");
-		foreach (String file in Directory.GetFiles("/home/nicholas/Tiled/tilesets"))
-		{
-			_tiledSets.Add(new TiledTileset(file));
-		}
-
+		Dictionary<Int32, TiledTileset> tilesets = GameServer._map.GetTiledTilesets("/home/nicholas/Tiled/");
 		if (!Directory.Exists("assets"))
 		{
 			throw new Exception("Missing assets directory");
@@ -72,28 +67,18 @@ public static class GameServer
 			{
 				for (int i = 0; i < layer.data.Length; i++)
 				{
-					var tileSet = _map.GetTiledMapTileset(layer.data[i]);
-					if (tileSet is null)
+					Int32 gid = layer.data[i];
+					TiledMapTileset tiledMapTileset = GameServer._map.GetTiledMapTileset(gid);
+					TiledTileset tileset = tilesets[tiledMapTileset.firstgid];
+					TiledSourceRect rect = GameServer._map.GetSourceRect(tiledMapTileset, tileset, gid);
+					if (rect is null)
 					{
-						throw new Exception("Why was it not found?");
+						rect = new TiledSourceRect() { x = 0, y = 0, width = 32, height = 32 };
 					}
 
-					// TODO: This is definitely not right, but since they're both 16 right now it's okay
-					Int32 x = i / _map.Width;
-					Int32 y = i % _map.Width;
-					BaseTile baseTile = new BaseTile { X = x, Y = y, TilesetSource = $"assets/{tileSet.source.Replace("tsx", "png")}" };
-					GameServer._tiles[x, y] = baseTile;
-				}
-			}
-		}
-
-		for (Int32 y = 0; y < GameServer._map.Height; y++)
-		{
-			for (Int32 x = 0; x < GameServer._map.Width; x++)
-			{
-				if (GameServer._tiles is null)
-				{
-					GameServer._tiles[x, y] = new BaseTile { X = x, Y = y, TilesetSource = "" };
+					int x = i % layer.width;
+					int y = i / layer.width;
+					GameServer._tiles[x, y] = new BaseTile { WorldTilePosition = new Point { X = x, Y = y }, SourceRectPosition = new Rectangle { X = rect.x, Y = rect.y, Width = rect.width, Height = rect.height }, TilesetSource = tiledMapTileset.source.Replace("tsx", "png") };
 				}
 			}
 		}

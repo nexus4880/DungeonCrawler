@@ -10,6 +10,7 @@ using DungeonCrawler.Client.Renderers;
 using System.IO.Compression;
 using System.Collections.Specialized;
 using System.Collections;
+using Raylib_CsLo;
 
 namespace DungeonCrawler.Client;
 
@@ -46,8 +47,29 @@ public static class Networking
 		args.PacketReader.GetBytes(buffer, buffer.Length);
 		using MemoryStream sm = new MemoryStream(buffer);
 		using ZipArchive zip = new ZipArchive(sm, ZipArchiveMode.Read);
-		currentVFS = VFS.FromArchive(zip);
+		Networking.currentVFS = VFS.FromArchive(zip);
+		GameManager.TextureHandler = new AssetHandler<Texture>(currentVFS, AssetHandlerTextureInitializer);
+		GameManager.ImageHandler = new AssetHandler<Image>(currentVFS, AssetHandlerImageInitializer);
 		PacketProcessor.Write(Writer, new AssetsLoadedPacket());
+	}
+
+	private static unsafe Texture AssetHandlerTextureInitializer(Byte[] bytes)
+	{
+		fixed (Byte* pBytes = bytes)
+		{
+			Image img = LoadImageFromMemory(".png", pBytes, bytes.Length);
+			Texture texture = LoadTextureFromImage(img);
+			UnloadImage(img);
+			return texture;
+		}
+	}
+
+	private static unsafe Image AssetHandlerImageInitializer(Byte[] bytes)
+	{
+		fixed (Byte* pBytes = bytes)
+		{
+			return LoadImageFromMemory(".png", pBytes, bytes.Length);
+		}
 	}
 
 	private static void OnEntityDestroyed(EntityDestroyPacket packet, UserPacketEventArgs args)
@@ -126,9 +148,8 @@ public static class Networking
 		{
 			for (Int32 x = 0; x < packet.WorldWidth; x++)
 			{
-				ClientBaseTile tile = new ClientBaseTile { X = x, Y = y };
+				ClientBaseTile tile = args.PacketReader.Get(() => new ClientBaseTile());
 				GameManager.tiles[x, y] = tile;
-				tile.Deserialize(args.PacketReader);
 				tile.Initialize();
 			}
 		}
