@@ -75,10 +75,7 @@ public static class GameManager
         foreach (var entity in _entities.Values)
         {
             BaseRenderer renderer = entity.GetComponent<BaseRenderer>();
-            if (renderer != null)
-            {
-                renderer.Draw();
-            }
+            renderer?.Draw();
         }
 
         EndMode2D();

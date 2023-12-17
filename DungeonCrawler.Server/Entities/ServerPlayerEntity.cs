@@ -4,6 +4,7 @@ using DungeonCrawler.Core;
 using DungeonCrawler.Core.Attributes;
 using DungeonCrawler.Core.Entities.EntityComponents;
 using DungeonCrawler.Core.Extensions;
+using DungeonCrawler.Server.Entities.EntityComponents;
 using DungeonCrawler.Server.Entities.EntityComponents.Renderers;
 using LiteNetLib;
 
@@ -14,7 +15,6 @@ public class ServerPlayerEntity : ServerEntity
 {
 	public NetPeer NetPeer { get; set; }
 	public PlayerInputs CurrentInputs { get; set; }
-
 	public override void Initialize(IDictionary properties)
 	{
 		base.Initialize(properties);
@@ -25,12 +25,40 @@ public class ServerPlayerEntity : ServerEntity
 			{ "Color", 0xFFFFFFFF },
 			{ "Filled", false }
 		});
+
+		this.AddComponent<ServerAnimator>(null);
 	}
 
 	public override void Update(float deltaTime)
 	{
 		base.Update(deltaTime);
 		this.HandleMovement(deltaTime);
+		this.DetermineWhichAnimationToPlay();
+	}
+
+	public void DetermineWhichAnimationToPlay()
+	{
+		EAnimationType copyOfAnimation = this.currentAnimation;
+		if (this.CurrentInputs.MoveLeft)
+		{
+			this.currentAnimation = EAnimationType.MOVELEFT;
+		}else if (this.CurrentInputs.MoveRight)
+		{
+			this.currentAnimation = EAnimationType.MOVERIGHT;
+		}else if (this.CurrentInputs.MoveDown)
+		{
+			this.currentAnimation = EAnimationType.MOVEDOWN;
+		}else if (this.CurrentInputs.MoveUp)
+		{
+			this.currentAnimation = EAnimationType.MOVEUP;
+		}else{
+			this.currentAnimation = EAnimationType.IDLE;
+		}
+
+		if (copyOfAnimation != this.currentAnimation)
+		{
+			this.SendUpdateAnimator();
+		}
 	}
 
 	private void HandleMovement(float deltaTime)

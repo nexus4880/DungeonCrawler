@@ -11,6 +11,7 @@ using System.IO.Compression;
 using System.Collections.Specialized;
 using System.Collections;
 using Raylib_CsLo;
+using DungeonCrawler.Core.Entities.EntityComponents;
 
 namespace DungeonCrawler.Client;
 
@@ -34,9 +35,19 @@ public static class Networking
 		Networking.Subscribe<EntityCreatePacket>(Networking.OnEntityCreated);
 		Networking.Subscribe<EntityDestroyPacket>(Networking.OnEntityDestroyed);
 		Networking.Subscribe<SetEntityContextPacket>(Networking.SetEntityContext);
+		Networking.Subscribe<UpdateComponentPacket>(Networking.OnUpdateComponent);
 		Networking.EventBasedNetListener = new EventBasedNetListener();
 		Networking.EventBasedNetListener.NetworkReceiveEvent += Networking.OnNetworkReceive;
 		Networking.NetManager = new NetManager(Networking.EventBasedNetListener);
+	}
+
+	private static void OnUpdateComponent(UpdateComponentPacket packet, UserPacketEventArgs args){
+		BaseEntityComponent componentToNotify = GameManager.GetEntityByID(packet.Entity).GetComponentByGUID(packet.Component);
+		switch(componentToNotify){
+			case PlayerAnimator entityAnimator:
+			entityAnimator.OnStateChange(args.PacketReader);
+			break;
+		}
 	}
 
 	private static void OnInitializeAssets(InitializeAssetsPacket packet, UserPacketEventArgs args)

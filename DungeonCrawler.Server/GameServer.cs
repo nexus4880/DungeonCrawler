@@ -191,6 +191,7 @@ public static class GameServer
 				{"NetPeer", args.Peer}
 			}
 		);
+		
 		thisPlayer.Position = new Vector2(spawnPoint.y, spawnPoint.y);
 		thisPlayer.SendCreateEntity();
 		thisPlayer.GiveControl(args.Peer);

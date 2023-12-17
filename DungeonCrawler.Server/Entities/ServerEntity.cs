@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Numerics;
 using DungeonCrawler.Core.Entities;
+using DungeonCrawler.Core.Entities.EntityComponents;
 using DungeonCrawler.Core.Extensions;
 using DungeonCrawler.Core.Packets;
 using LiteNetLib;
@@ -16,6 +17,20 @@ public class ServerEntity : Entity
 		NetDataWriter writer = new NetDataWriter();
 		GameServer.PacketProcessor.Write(writer, packet);
 		GameServer.NetManager.SendToAll(writer, DeliveryMethod.ReliableOrdered);
+	}
+
+	public void SendUpdateAnimator()
+	{
+		NetDataWriter writer = new NetDataWriter();
+		UpdateComponentPacket packet = new UpdateComponentPacket
+		{
+			Entity = this.EntityId,
+			Component = this.GetComponent<EntityAnimator>().ComponentId
+		};
+
+		GameServer.PacketProcessor.Write(writer,packet);
+		writer.Put((int)this.currentAnimation);
+		GameServer.NetManager.SendToAll(writer,DeliveryMethod.ReliableOrdered);
 	}
 
 	public void SendCreateEntity()
