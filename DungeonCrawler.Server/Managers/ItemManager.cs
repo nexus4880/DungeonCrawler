@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using DungeonCrawler.Core;
 using DungeonCrawler.Core.Items;
 using DungeonCrawler.Core.Packets;
 using LiteNetLib;

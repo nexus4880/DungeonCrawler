@@ -4,7 +4,6 @@ using DungeonCrawler.Core;
 using DungeonCrawler.Core.Attributes;
 using DungeonCrawler.Core.Entities.EntityComponents;
 using DungeonCrawler.Core.Extensions;
-using DungeonCrawler.Server.Entities.EntityComponents;
 using DungeonCrawler.Server.Entities.EntityComponents.Renderers;
 using LiteNetLib;
 
@@ -15,6 +14,7 @@ public class ServerPlayerEntity : ServerEntity
 {
 	public NetPeer NetPeer { get; set; }
 	public PlayerInputs CurrentInputs { get; set; }
+
 	public override void Initialize(IDictionary properties)
 	{
 		base.Initialize(properties);
@@ -26,38 +26,50 @@ public class ServerPlayerEntity : ServerEntity
 			{ "Filled", false }
 		});
 
-		this.AddComponent<ServerAnimator>(null);
+		this.AddComponent<EntityAnimatorComponent<EPlayerMovementAnimations>>();
 	}
 
 	public override void Update(float deltaTime)
 	{
 		base.Update(deltaTime);
 		this.HandleMovement(deltaTime);
-		this.DetermineWhichAnimationToPlay();
+		EntityAnimatorComponent<EPlayerMovementAnimations> animatorComponent = this.GetComponent<EntityAnimatorComponent<EPlayerMovementAnimations>>();
+		if (animatorComponent is not null)
+		{
+			this.HandleMovementAnimation(animatorComponent);
+		}
 	}
 
-	public void DetermineWhichAnimationToPlay()
+	public void HandleMovementAnimation(EntityAnimatorComponent<EPlayerMovementAnimations> animatorComponent)
 	{
-		EAnimationType copyOfAnimation = this.currentAnimation;
+		EPlayerMovementAnimations previousAnimation = animatorComponent.CurrentAnimation;
 		if (this.CurrentInputs.MoveLeft)
 		{
-			this.currentAnimation = EAnimationType.MOVELEFT;
-		}else if (this.CurrentInputs.MoveRight)
+			animatorComponent.CurrentAnimation = EPlayerMovementAnimations.MOVE_LEFT;
+		}
+		else if (this.CurrentInputs.MoveRight)
 		{
-			this.currentAnimation = EAnimationType.MOVERIGHT;
-		}else if (this.CurrentInputs.MoveDown)
+			animatorComponent.CurrentAnimation = EPlayerMovementAnimations.MOVE_RIGHT;
+		}
+		else if (this.CurrentInputs.MoveDown)
 		{
-			this.currentAnimation = EAnimationType.MOVEDOWN;
-		}else if (this.CurrentInputs.MoveUp)
+			animatorComponent.CurrentAnimation = EPlayerMovementAnimations.MOVE_DOWN;
+		}
+		else if (this.CurrentInputs.MoveUp)
 		{
-			this.currentAnimation = EAnimationType.MOVEUP;
-		}else{
-			this.currentAnimation = EAnimationType.IDLE;
+			animatorComponent.CurrentAnimation = EPlayerMovementAnimations.MOVE_UP;
+		}
+		else
+		{
+			animatorComponent.CurrentAnimation = EPlayerMovementAnimations.IDLE;
 		}
 
-		if (copyOfAnimation != this.currentAnimation)
+		if (previousAnimation != animatorComponent.CurrentAnimation)
 		{
-			this.SendUpdateAnimator();
+			this.SendUpdateComponent(animatorComponent, new Hashtable
+			{
+				{nameof(animatorComponent.CurrentAnimation), (Byte)animatorComponent.CurrentAnimation}
+			});
 		}
 	}
 

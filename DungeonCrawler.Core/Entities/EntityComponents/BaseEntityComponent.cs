@@ -9,7 +9,8 @@ public abstract class BaseEntityComponent : INetSerializable
 	public Entity Owner { get; set; }
 	public Guid ComponentId { get; set; }
 
-	public virtual void OnStateChange(NetDataReader reader){
+	public virtual void OnStateChange(IDictionary properties)
+	{
 	}
 
 	public virtual void Initialize(IDictionary properties)

@@ -3,7 +3,6 @@ using System.Collections.Specialized;
 using System.Numerics;
 using DungeonCrawler.Core.Entities;
 using DungeonCrawler.Core.Entities.EntityComponents;
-using DungeonCrawler.Core.Extensions;
 using DungeonCrawler.Core.Items;
 using DungeonCrawler.Core.Packets;
 using LiteNetLib;

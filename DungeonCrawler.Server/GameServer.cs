@@ -187,11 +187,12 @@ public static class GameServer
 		TiledObject[] spawnPoints = GameServer._map.GetLayerByName("SpawnPoints").objects;
 		TiledObject spawnPoint = spawnPoints[Random.Shared.Next(0, spawnPoints.Length)];
 		ServerEntity thisPlayer = GameManager.CreateEntity<ServerPlayerEntity>(
-			new ListDictionary{
+			new ListDictionary
+			{
 				{"NetPeer", args.Peer}
 			}
 		);
-		
+
 		thisPlayer.Position = new Vector2(spawnPoint.y, spawnPoint.y);
 		thisPlayer.SendCreateEntity();
 		thisPlayer.GiveControl(args.Peer);

@@ -14,7 +14,6 @@ public abstract class Entity : INetSerializable
 	{
 		writer.Put(this.EntityId);
 		writer.Put(this.Position);
-		writer.Put((byte)this.currentAnimation);
 		writer.Put((Byte)this._entityComponents.Count);
 		foreach (BaseEntityComponent entityComponent in this._entityComponents)
 		{
@@ -26,7 +25,6 @@ public abstract class Entity : INetSerializable
 	{
 		this.EntityId = reader.GetGuid();
 		this.Position = reader.GetVector2();
-		this.currentAnimation = (EAnimationType)reader.GetByte();
 		Byte componentsCount = reader.GetByte();
 		this._entityComponents.EnsureCapacity(componentsCount);
 		for (Byte i = 0; i < componentsCount; i++)
@@ -44,7 +42,7 @@ public abstract class Entity : INetSerializable
 
 	public Guid EntityId { get; set; }
 	public virtual Vector2 Position { get; set; }
-	public EAnimationType currentAnimation {get; set;}
+
 	public virtual void Update(Single deltaTime)
 	{
 	}
@@ -62,7 +60,7 @@ public abstract class Entity : INetSerializable
 		return this._entityComponents.FirstOrDefault(comp => comp is T) as T;
 	}
 
-	public virtual T AddComponent<T>(IDictionary properties) where T : BaseEntityComponent, new()
+	public virtual T AddComponent<T>(IDictionary properties = null) where T : BaseEntityComponent, new()
 	{
 		Guid componentId = Guid.NewGuid();
 		T component = new T
@@ -77,7 +75,8 @@ public abstract class Entity : INetSerializable
 		return component;
 	}
 
-	public BaseEntityComponent GetComponentByGUID(Guid componentGuid){
+	public BaseEntityComponent GetComponentByGUID(Guid componentGuid)
+	{
 		return this._entityComponents.FirstOrDefault(c => c.ComponentId == componentGuid);
 	}
 

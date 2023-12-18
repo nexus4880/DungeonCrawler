@@ -1,4 +1,3 @@
-using System.Numerics;
 using DungeonCrawler.Core.Map;
 
 namespace DungeonCrawler.Client;

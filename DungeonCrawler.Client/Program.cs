@@ -15,6 +15,7 @@ Int32 entityCount = LNHashCache.RegisterAllOfType<Entity>();
 Console.WriteLine($"Registered {entityCount} entity types");
 Int32 entityComponentCount = LNHashCache.RegisterAllOfType<BaseEntityComponent>();
 Console.WriteLine($"Registered {entityComponentCount} entity component types");
+LNHashCache.RegisterType<EntityAnimatorComponent<EPlayerMovementAnimations>>();
 
 if (!Networking.NetManager.Start())
 {

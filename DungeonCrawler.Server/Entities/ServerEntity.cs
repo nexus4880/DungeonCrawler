@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Numerics;
 using DungeonCrawler.Core.Entities;
 using DungeonCrawler.Core.Entities.EntityComponents;
 using DungeonCrawler.Core.Extensions;
@@ -19,18 +18,16 @@ public class ServerEntity : Entity
 		GameServer.NetManager.SendToAll(writer, DeliveryMethod.ReliableOrdered);
 	}
 
-	public void SendUpdateAnimator()
+	public void SendUpdateComponent(BaseEntityComponent component, IDictionary data)
 	{
 		NetDataWriter writer = new NetDataWriter();
-		UpdateComponentPacket packet = new UpdateComponentPacket
+		GameServer.PacketProcessor.Write(writer, new UpdateComponentPacket
 		{
 			Entity = this.EntityId,
-			Component = this.GetComponent<EntityAnimator>().ComponentId
-		};
-
-		GameServer.PacketProcessor.Write(writer,packet);
-		writer.Put((int)this.currentAnimation);
-		GameServer.NetManager.SendToAll(writer,DeliveryMethod.ReliableOrdered);
+			Component = component.ComponentId
+		});
+		writer.Put(data);
+		GameServer.NetManager.SendToAll(writer, DeliveryMethod.ReliableOrdered);
 	}
 
 	public void SendCreateEntity()
@@ -48,7 +45,7 @@ public class ServerEntity : Entity
 		peer.Send(writer, DeliveryMethod.ReliableOrdered);
 	}
 
-	public override T AddComponent<T>(IDictionary properties)
+	public override T AddComponent<T>(IDictionary properties = null)
 	{
 		return base.AddComponent<T>(properties);
 	}

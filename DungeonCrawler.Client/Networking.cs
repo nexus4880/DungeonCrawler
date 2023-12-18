@@ -1,16 +1,11 @@
-﻿using System.Runtime.InteropServices;
-using DungeonCrawler.Core;
+﻿using DungeonCrawler.Core;
 using DungeonCrawler.Core.Entities;
 using DungeonCrawler.Core.Extensions;
 using DungeonCrawler.Core.Packets;
 using LiteNetLib;
 using LiteNetLib.Utils;
-using System.Numerics;
-using DungeonCrawler.Client.Renderers;
 using System.IO.Compression;
-using System.Collections.Specialized;
 using System.Collections;
-using Raylib_CsLo;
 using DungeonCrawler.Core.Entities.EntityComponents;
 
 namespace DungeonCrawler.Client;
@@ -41,13 +36,23 @@ public static class Networking
 		Networking.NetManager = new NetManager(Networking.EventBasedNetListener);
 	}
 
-	private static void OnUpdateComponent(UpdateComponentPacket packet, UserPacketEventArgs args){
-		BaseEntityComponent componentToNotify = GameManager.GetEntityByID(packet.Entity).GetComponentByGUID(packet.Component);
-		switch(componentToNotify){
-			case PlayerAnimator entityAnimator:
-			entityAnimator.OnStateChange(args.PacketReader);
-			break;
+	private static void OnUpdateComponent(UpdateComponentPacket packet, UserPacketEventArgs args)
+	{
+		Entity entity = GameManager.GetEntityByID(packet.Entity);
+		if (entity is null)
+		{
+			return;
 		}
+
+
+		BaseEntityComponent componentToNotify = entity.GetComponentByGUID(packet.Component);
+		if (componentToNotify is null)
+		{
+			return;
+		}
+
+		IDictionary properties = args.PacketReader.GetDictionary();
+		componentToNotify.OnStateChange(properties);
 	}
 
 	private static void OnInitializeAssets(InitializeAssetsPacket packet, UserPacketEventArgs args)
@@ -204,7 +209,7 @@ public static class Networking
 		}
 		catch (ParseException)
 		{
-			Console.WriteLine("[OnNetworkReceive] failed to parse packet");
+			Console.WriteLine($"[OnNetworkReceive] failed to parse packet: {reader.AvailableBytes} bytes");
 		}
 	}
 }

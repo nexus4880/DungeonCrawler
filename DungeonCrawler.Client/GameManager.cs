@@ -1,6 +1,5 @@
 using DungeonCrawler.Core;
 using DungeonCrawler.Core.Entities;
-using Raylib_CsLo;
 using DungeonCrawler.Core.Packets;
 using DungeonCrawler.Core.Entities.EntityComponents.Renderers;
 namespace DungeonCrawler.Client;
@@ -45,7 +44,7 @@ public static class GameManager
         }
 
         camera.target = localPlayer.Position;
-        var currentInputs = new PlayerInputs
+        PlayerInputs currentInputs = new PlayerInputs
         {
             MoveUp = IsKeyDown(KeyboardKey.KEY_W),
             MoveDown = IsKeyDown(KeyboardKey.KEY_S),
@@ -67,12 +66,12 @@ public static class GameManager
     public static void Draw()
     {
         BeginMode2D(camera);
-        foreach (var tile in GameManager.tiles)
+        foreach (ClientBaseTile tile in GameManager.tiles)
         {
             tile.Draw();
         }
 
-        foreach (var entity in _entities.Values)
+        foreach (Entity entity in _entities.Values)
         {
             BaseRenderer renderer = entity.GetComponent<BaseRenderer>();
             renderer?.Draw();

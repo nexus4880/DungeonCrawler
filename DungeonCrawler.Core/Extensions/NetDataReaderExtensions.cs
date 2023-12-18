@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System.Collections;
+using System.Drawing;
 using System.Numerics;
 using DungeonCrawler.Core.Items;
 using LiteNetLib.Utils;
@@ -69,5 +70,35 @@ public static class NetDataReaderExtensions
 	public static Rectangle GetRectangle(this NetDataReader reader)
 	{
 		return new Rectangle(reader.GetInt(), reader.GetInt(), reader.GetInt(), reader.GetInt());
+	}
+
+	public static IDictionary GetDictionary(this NetDataReader reader)
+	{
+		Byte length = reader.GetByte();
+		Hashtable result = new Hashtable(length);
+		for (Byte i = 0; i < length; i++)
+		{
+			String key = reader.GetString();
+			TypeCode typeCode = (TypeCode)reader.GetByte();
+			switch (typeCode)
+			{
+				case TypeCode.Byte:
+					{
+						result[key] = reader.GetByte();
+
+						break;
+					}
+				case TypeCode.Empty:
+					{
+						throw new Exception("Cannot read empty TypeCode... how is it empty?");
+					}
+				default:
+					{
+						throw new Exception($"Unsure how to read TypeCode: '{typeCode}'");
+					}
+			}
+		}
+
+		return result;
 	}
 }
