@@ -1,4 +1,4 @@
-﻿namespace DungeonCrawler.Core.Items; 
+﻿namespace DungeonCrawler.Core.Items;
 
 public enum EEquipmentSlot {
 	Helmet,

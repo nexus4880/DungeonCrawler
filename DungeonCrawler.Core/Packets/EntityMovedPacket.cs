@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace DungeonCrawler.Core.Packets; 
+namespace DungeonCrawler.Core.Packets;
 
 public class EntityMovedPacket {
 	public Guid EntityId { get; set; }

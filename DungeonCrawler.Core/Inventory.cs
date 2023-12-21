@@ -5,7 +5,7 @@ using LiteNetLib.Utils;
 namespace DungeonCrawler.Core;
 
 public class Inventory : INetSerializable {
-	private readonly Dictionary<EEquipmentSlot, Item> _equipment = new Dictionary<EEquipmentSlot, Item>();
+	private readonly Dictionary<EEquipmentSlot, Item> _equipment = [];
 	private List<Item>[] _hotbar;
 
 	public Inventory(IInventoryOwner owner, Int32 hotbarLength = 0) {
@@ -70,11 +70,16 @@ public class Inventory : INetSerializable {
 	}
 
 	public Boolean AddItem(Item item) {
-		if (_hotbar is null) return false;
-		if (_hotbar[0] is null or {Count: 0}) return false;
+		if (this._hotbar is null) {
+			return false;
+		}
 
-		_hotbar[0].Add(item);
-		
+		if (this._hotbar[0] is null or { Count: 0 }) {
+			return false;
+		}
+
+		this._hotbar[0].Add(item);
+
 		return true;
 	}
 }

@@ -1,14 +1,14 @@
 using System.Collections;
 using LiteNetLib.Utils;
 
-namespace DungeonCrawler.Core.Entities.EntityComponents;
+namespace DungeonCrawler.Core.Entities.EntityComponents.Animators;
 
-public class EntityAnimatorComponent<TAnimationType> : BaseEntityComponent
+public class EntityAnimatorComponent<TAnimationType> : BaseAnimatorComponent
     where TAnimationType : Enum
 {
     public TAnimationType CurrentAnimation { get; set; }
 
-    public virtual void Animate()
+    public override void Animate()
     {
         throw new NotImplementedException();
     }
@@ -16,8 +16,8 @@ public class EntityAnimatorComponent<TAnimationType> : BaseEntityComponent
     public override void Deserialize(NetDataReader reader)
     {
         base.Deserialize(reader);
-        Byte animationByte = reader.GetByte();
-        this.CurrentAnimation = (TAnimationType)Enum.ToObject(typeof(TAnimationType), animationByte);
+        byte animationByte = reader.GetByte();
+        CurrentAnimation = (TAnimationType)Enum.ToObject(typeof(TAnimationType), animationByte);
     }
 
     public override void Initialize(IDictionary properties)
@@ -28,6 +28,6 @@ public class EntityAnimatorComponent<TAnimationType> : BaseEntityComponent
     public override void Serialize(NetDataWriter writer)
     {
         base.Serialize(writer);
-        writer.Put(Convert.ToByte(this.CurrentAnimation));
+        writer.Put(Convert.ToByte(CurrentAnimation));
     }
 }

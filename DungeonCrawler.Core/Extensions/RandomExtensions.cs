@@ -4,7 +4,7 @@ namespace DungeonCrawler.Core.Extensions;
 
 public static class RandomExtensions {
 	public static Single NextSingleValue(this Random random, Single min, Single max) {
-		return random.NextSingle() * (max - min) + min;
+		return (random.NextSingle() * (max - min)) + min;
 	}
 
 	public static Vector2 NextVector2(this Random random, Vector2 min, Vector2 max) {

@@ -24,13 +24,11 @@ Int32 entityComponentsRegistered = LNHashCache.RegisterAllOfType<BaseEntityCompo
 Console.WriteLine($"Registered {entityComponentsRegistered} entity component types");
 
 GameServer.Initialize(IPAddress.Any, IPAddress.IPv6Any, 8278);
-while (isRunning)
-{
+while (isRunning) {
 	Single deltaTime = (Single)frameTimer.Elapsed.TotalSeconds;
 	frameTimer.Restart();
 	GameServer.Update(deltaTime);
-	while (frameTimer.Elapsed.TotalSeconds < TARGET_FRAME_TIME)
-	{
+	while (frameTimer.Elapsed.TotalSeconds < TARGET_FRAME_TIME) {
 	}
 }
 

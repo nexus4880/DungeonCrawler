@@ -7,4 +7,4 @@ public record UserPacketEventArgs(
 		NetPacketReader PacketReader,
 		Byte Channel,
 		DeliveryMethod DeliveryMethod) {
-	}
+}

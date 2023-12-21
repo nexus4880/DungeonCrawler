@@ -19,22 +19,20 @@ using TiledCS;
 
 namespace DungeonCrawler.Server;
 
-public static class GameServer
-{
+public static class GameServer {
 	public static EventBasedNetListener EventBasedNetListener { get; } = new EventBasedNetListener();
 	public static NetManager NetManager { get; private set; }
 	public static NetPacketProcessor PacketProcessor { get; } = new NetPacketProcessor();
 	private static Byte[] _assetsBuffer;
 	private static TiledMap _map;
 	private static List<BaseTile> _tiles;
+	public static Rectangle MapBounds { get; private set; }
 
-	public static void Initialize(IPAddress ipv4, IPAddress ipv6, Int32 port)
-	{
+	public static void Initialize(IPAddress ipv4, IPAddress ipv6, Int32 port) {
 		Console.WriteLine("Loading map...");
 		GameServer._map = new TiledMap("./map/untitled.tmx");
 		Dictionary<Int32, TiledTileset> tilesets = GameServer._map.GetTiledTilesets("./map/");
-		if (!Directory.Exists("assets"))
-		{
+		if (!Directory.Exists("assets")) {
 			throw new Exception("Missing assets directory");
 		}
 
@@ -53,8 +51,7 @@ public static class GameServer
 		SubscribePacket<WorldLoadedPacket>(GameServer.OnWorldLoadedPacket);
 		GameServer.NetManager = new NetManager(GameServer.EventBasedNetListener);
 		String ip = $"{ipv4}:{port}";
-		if (!GameServer.NetManager.Start(ipv4, ipv6, port))
-		{
+		if (!GameServer.NetManager.Start(ipv4, ipv6, port)) {
 			throw new Exception($"Failed to start server on {ip}");
 		}
 
@@ -62,28 +59,23 @@ public static class GameServer
 
 		GameServer._tiles = new List<BaseTile>(GameServer._map.Width * GameServer._map.Height);
 		List<TiledLayer> sortedTileLayers = _map.Layers.Where(layer => layer.data is not null && layer.properties.Parse().GetValueAs<int>("LayerIndex", -512) != -512).OrderBy(layer => layer.properties.Parse().GetValueAs<int>("LayerIndex")).ToList();
-		foreach (TiledLayer tileLayer in sortedTileLayers)
-		{
-			for (int i = 0; i < tileLayer.data.Length; i++)
-			{
+		foreach (TiledLayer tileLayer in sortedTileLayers) {
+			for (int i = 0; i < tileLayer.data.Length; i++) {
 				Int32 gid = tileLayer.data[i];
-				if (gid is 0)
-				{
+				if (gid is 0) {
 					continue;
 				}
 
 				TiledMapTileset tiledMapTileset = GameServer._map.GetTiledMapTileset(gid);
 				TiledTileset tileset = tilesets[tiledMapTileset.firstgid];
 				TiledSourceRect rect = GameServer._map.GetSourceRect(tiledMapTileset, tileset, gid);
-				if (rect is null)
-				{
+				if (rect is null) {
 					continue;
 				}
 
 				int x = i % tileLayer.width;
 				int y = i / tileLayer.width;
-				BaseTile tile = new BaseTile
-				{
+				BaseTile tile = new BaseTile {
 					WorldTilePosition = new Point { X = x, Y = y },
 					SourceRectPosition = new Rectangle { X = rect.x, Y = rect.y, Width = rect.width, Height = rect.height },
 					Layer = tileLayer.properties.Parse().GetValueAsOrThrow<Int32>("LayerIndex"),
@@ -94,11 +86,9 @@ public static class GameServer
 		}
 
 		// TODO: Later I will make this search every layer
-		foreach (TiledObject lootPoint in GameServer._map.GetLayerByName("Loot").objects)
-		{
+		foreach (TiledObject lootPoint in GameServer._map.GetLayerByName("Loot").objects) {
 			Type itemType = LNHashCache.GetTypeByName(lootPoint.type);
-			if (itemType is null)
-			{
+			if (itemType is null) {
 				throw new Exception($"Failed to deserialize type: '{lootPoint.type}'");
 			}
 
@@ -113,18 +103,17 @@ public static class GameServer
 			droppedItem.AddComponent<ServerTextureRenderer>(itemProperties);
 			droppedItem.Position = new Vector2(lootPoint.x, lootPoint.y);
 		}
+
+		GameServer.MapBounds = new Rectangle(0, 0, GameServer._map.Width * GameServer._map.TileWidth, GameServer._map.Height * GameServer._map.TileHeight);
 	}
 
-	public static void SubscribePacket<T>(Action<T, UserPacketEventArgs> callback) where T : class, new()
-	{
+	public static void SubscribePacket<T>(Action<T, UserPacketEventArgs> callback) where T : class, new() {
 		GameServer.PacketProcessor.SubscribeReusable<T, UserPacketEventArgs>(callback);
 	}
 
-	private static void OnSetInputsPacket(SetInputsPacket packet, UserPacketEventArgs args)
-	{
+	private static void OnSetInputsPacket(SetInputsPacket packet, UserPacketEventArgs args) {
 		ServerPlayerEntity player = GameManager.GetEntities<ServerPlayerEntity>().FirstOrDefault(player => player.NetPeer.Id == args.Peer.Id);
-		if (player is null)
-		{
+		if (player is null) {
 			Console.WriteLine($"[OnSetInputsPacket] no peer {args.Peer.Id}");
 
 			return;
@@ -133,33 +122,25 @@ public static class GameServer
 		player.CurrentInputs = packet.Inputs;
 	}
 
-	private static void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectinfo)
-	{
+	private static void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectinfo) {
 		ServerPlayerEntity playerEntity = GameManager.GetEntities<ServerPlayerEntity>().FirstOrDefault(player => player.NetPeer.Id == peer.Id);
-		if (playerEntity is not null)
-		{
-			if (GameManager.DestroyEntity(playerEntity.EntityId))
-			{
-				Console.WriteLine($"[OnPeerDisconnected] {playerEntity.EntityId} ({peer.Id}) disconnected");
-			}
-			else
-			{
-				Console.WriteLine($"[OnPeerDisconnected] failed to remove {playerEntity.EntityId} ({peer.Id}) from GameManager");
-			}
+		if (playerEntity is null) {
+			return;
 		}
-		else
-		{
-			Console.WriteLine($"[OnPeerDisconnected] failed to get PlayerEntity with PeerId {peer.Id}");
+
+		if (GameManager.DestroyEntity(playerEntity.EntityId)) {
+			Console.WriteLine($"[OnPeerDisconnected] {playerEntity.EntityId} ({peer.Id}) disconnected");
+		}
+		else {
+			Console.WriteLine($"[OnPeerDisconnected] failed to remove {playerEntity.EntityId} ({peer.Id}) from GameManager");
 		}
 	}
 
-	private static void OnAssetsLoadedPacket(AssetsLoadedPacket packet, UserPacketEventArgs args)
-	{
+	private static void OnAssetsLoadedPacket(AssetsLoadedPacket packet, UserPacketEventArgs args) {
 		Console.WriteLine($"[OnAssetsLoadedPacket] {args.Peer.Id} has finished loading assets, sending game state");
 		Dictionary<Guid, Entity>.ValueCollection entities = GameManager.EntityList.Values;
 		NetDataWriter writer = new NetDataWriter();
-		GameServer.PacketProcessor.Write(writer, new InitializeWorldPacket
-		{
+		GameServer.PacketProcessor.Write(writer, new InitializeWorldPacket {
 			EntitiesCount = entities.Count,
 			LocalPlayerEntityId = Guid.Empty,
 			WorldWidth = _map.Width,
@@ -169,21 +150,18 @@ public static class GameServer
 			TileCount = _tiles.Count
 		});
 
-		foreach (Entity entity in entities)
-		{
+		foreach (Entity entity in entities) {
 			writer.PutDeserializable(entity);
 		}
 
-		foreach (var tile in GameServer._tiles)
-		{
+		foreach (var tile in GameServer._tiles) {
 			writer.Put(tile);
 		}
 
 		args.Peer.Send(writer, DeliveryMethod.ReliableOrdered);
 	}
 
-	private static void OnWorldLoadedPacket(WorldLoadedPacket packet, UserPacketEventArgs args)
-	{
+	private static void OnWorldLoadedPacket(WorldLoadedPacket packet, UserPacketEventArgs args) {
 		TiledObject[] spawnPoints = GameServer._map.GetLayerByName("SpawnPoints").objects;
 		TiledObject spawnPoint = spawnPoints[Random.Shared.Next(0, spawnPoints.Length)];
 		ServerEntity thisPlayer = GameManager.CreateEntity<ServerPlayerEntity>(
@@ -198,11 +176,9 @@ public static class GameServer
 		thisPlayer.GiveControl(args.Peer);
 	}
 
-	private static void OnConnectionRequest(ConnectionRequest request)
-	{
+	private static void OnConnectionRequest(ConnectionRequest request) {
 		NetPeer peer = request.AcceptIfKey("DungeonCrawler");
-		if (peer is null)
-		{
+		if (peer is null) {
 			Console.WriteLine($"[OnConnectionRequest] invalid key");
 
 			return;
@@ -211,32 +187,27 @@ public static class GameServer
 		Console.WriteLine($"[OnConnectionRequest] connection from {peer.EndPoint} accepted as ID {peer.Id}, sending {_assetsBuffer.Length} bytes worth of assets");
 		NetDataWriter writer = new NetDataWriter();
 		GameServer.PacketProcessor.Write(writer, new InitializeAssetsPacket { });
-		writer.Put((Int32)_assetsBuffer.Length);
+		writer.Put(_assetsBuffer.Length);
 		writer.Put(_assetsBuffer);
 		peer.Send(writer, DeliveryMethod.ReliableOrdered);
 	}
 
 	private static void OnNetworkReceive(NetPeer peer, NetPacketReader reader, Byte channel,
-		DeliveryMethod deliveryMethod)
-	{
-		try
-		{
+		DeliveryMethod deliveryMethod) {
+		try {
 			GameServer.PacketProcessor.ReadAllPackets(reader, new UserPacketEventArgs(peer, reader, channel, deliveryMethod));
 		}
-		catch (ParseException)
-		{
+		catch (ParseException) {
 			Console.WriteLine($"[OnNetworkReceive] {peer.EndPoint} ({peer.Id}) sent a packet we don't understand");
 		}
 	}
 
-	public static void Update(Single deltaTime)
-	{
+	public static void Update(Single deltaTime) {
 		GameServer.NetManager.PollEvents();
 		GameManager.Update(deltaTime);
 	}
 
-	public static void Shutdown()
-	{
+	public static void Shutdown() {
 		GameServer.NetManager.Stop(true);
 	}
 }

@@ -1,4 +1,4 @@
-﻿namespace DungeonCrawler.Core; 
+﻿namespace DungeonCrawler.Core;
 
 public class BasicTimer {
 	private readonly Action _callback;

@@ -1,4 +1,4 @@
-﻿namespace DungeonCrawler.Core.Packets; 
+﻿namespace DungeonCrawler.Core.Packets;
 
 public class UpdateHealthPacket {
 	public Int32 Id { get; set; }

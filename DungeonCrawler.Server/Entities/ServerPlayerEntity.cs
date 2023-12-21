@@ -2,21 +2,22 @@ using System.Collections;
 using System.Numerics;
 using DungeonCrawler.Core;
 using DungeonCrawler.Core.Attributes;
+using DungeonCrawler.Core.Entities;
 using DungeonCrawler.Core.Entities.EntityComponents;
+using DungeonCrawler.Core.Entities.EntityComponents.Animators;
 using DungeonCrawler.Core.Extensions;
+using DungeonCrawler.Server.Entities.EntityComponents.Colliders;
 using DungeonCrawler.Server.Entities.EntityComponents.Renderers;
 using LiteNetLib;
 
 namespace DungeonCrawler.Server.Entities;
 
-[HashAs("DungeonCrawler.Core.Entities.PlayerEntity")]
-public class ServerPlayerEntity : ServerEntity
-{
+[HashAs(typeof(PlayerEntity))]
+public class ServerPlayerEntity : ServerEntity {
 	public NetPeer NetPeer { get; set; }
 	public PlayerInputs CurrentInputs { get; set; }
 
-	public override void Initialize(IDictionary properties)
-	{
+	public override void Initialize(IDictionary properties) {
 		base.Initialize(properties);
 		this.NetPeer = properties.GetValueAsOrThrow<NetPeer>("NetPeer");
 		this.AddComponent<HealthComponent>(new Hashtable { { "Value", 100f } });
@@ -27,45 +28,56 @@ public class ServerPlayerEntity : ServerEntity
 		});
 
 		this.AddComponent<EntityAnimatorComponent<EPlayerMovementAnimations>>();
+		this.AddComponent<CircleColliderComponent>(new Hashtable {
+			{ "Radius", 16f }
+		});
 	}
 
-	public override void Update(float deltaTime)
-	{
+	public override void Update(float deltaTime) {
 		base.Update(deltaTime);
 		this.HandleMovement(deltaTime);
 		EntityAnimatorComponent<EPlayerMovementAnimations> animatorComponent = this.GetComponent<EntityAnimatorComponent<EPlayerMovementAnimations>>();
-		if (animatorComponent is not null)
-		{
+		if (animatorComponent is not null) {
 			this.HandleMovementAnimation(animatorComponent);
 		}
 	}
 
-	public void HandleMovementAnimation(EntityAnimatorComponent<EPlayerMovementAnimations> animatorComponent)
-	{
-		EPlayerMovementAnimations previousAnimation = animatorComponent.CurrentAnimation;
-		if (this.CurrentInputs.MoveLeft)
-		{
-			animatorComponent.CurrentAnimation = EPlayerMovementAnimations.MOVE_LEFT;
-		}
-		else if (this.CurrentInputs.MoveRight)
-		{
-			animatorComponent.CurrentAnimation = EPlayerMovementAnimations.MOVE_RIGHT;
-		}
-		else if (this.CurrentInputs.MoveDown)
-		{
-			animatorComponent.CurrentAnimation = EPlayerMovementAnimations.MOVE_DOWN;
-		}
-		else if (this.CurrentInputs.MoveUp)
-		{
-			animatorComponent.CurrentAnimation = EPlayerMovementAnimations.MOVE_UP;
-		}
-		else
-		{
-			animatorComponent.CurrentAnimation = EPlayerMovementAnimations.IDLE;
+	public void HandleMovementAnimation(EntityAnimatorComponent<EPlayerMovementAnimations> animatorComponent) {
+		EPlayerMovementAnimations currentAnimation = animatorComponent.CurrentAnimation;
+		EPlayerMovementAnimations targetAnimation = EPlayerMovementAnimations.IDLE;
+		int horizontalMovement = 0;
+		if (this.CurrentInputs.MoveLeft) {
+			horizontalMovement--;
 		}
 
-		if (previousAnimation != animatorComponent.CurrentAnimation)
-		{
+		if (this.CurrentInputs.MoveRight) {
+			horizontalMovement++;
+		}
+
+		int verticalMovement = 0;
+		if (this.CurrentInputs.MoveUp) {
+			verticalMovement--;
+		}
+
+		if (this.CurrentInputs.MoveDown) {
+			verticalMovement++;
+		}
+
+		// If this is true then we are not moving and are therefore idle
+		if (verticalMovement != 0 || horizontalMovement != 0) {
+			// This is idle right now but we are moving diagonally
+			if (verticalMovement != 0 && horizontalMovement != 0) {
+
+			}
+			else {
+				targetAnimation = verticalMovement == -1 ? EPlayerMovementAnimations.MOVE_UP : EPlayerMovementAnimations.MOVE_DOWN;
+
+				targetAnimation = horizontalMovement == -1 ? EPlayerMovementAnimations.MOVE_LEFT : EPlayerMovementAnimations.MOVE_RIGHT;
+			}
+		}
+
+		if (targetAnimation != currentAnimation) {
+			animatorComponent.CurrentAnimation = targetAnimation;
 			this.SendUpdateComponent(animatorComponent, new Hashtable
 			{
 				{nameof(animatorComponent.CurrentAnimation), (Byte)animatorComponent.CurrentAnimation}
@@ -73,40 +85,54 @@ public class ServerPlayerEntity : ServerEntity
 		}
 	}
 
-	private void HandleMovement(float deltaTime)
-	{
+	private void HandleMovement(float deltaTime) {
 		Vector2 movement = Vector2.Zero;
-		if (this.CurrentInputs.MoveLeft)
-		{
+		if (this.CurrentInputs.MoveLeft) {
 			movement.X -= 1f;
 		}
 
-		if (this.CurrentInputs.MoveRight)
-		{
+		if (this.CurrentInputs.MoveRight) {
 			movement.X += 1f;
 		}
 
-		if (this.CurrentInputs.MoveDown)
-		{
+		if (this.CurrentInputs.MoveDown) {
 			movement.Y += 1f;
 		}
 
-		if (this.CurrentInputs.MoveUp)
-		{
+		if (this.CurrentInputs.MoveUp) {
 			movement.Y -= 1f;
 		}
 
-		if (movement.Length() != 0f)
-		{
+		if (movement != Vector2.Zero) {
 			movement *= 100f;
 			MovementSpeedBuffComponent movementSpeedBuffComponent = this.GetComponent<MovementSpeedBuffComponent>();
-			if (movementSpeedBuffComponent is not null)
-			{
+			if (movementSpeedBuffComponent is not null) {
 				movement *= movementSpeedBuffComponent.Value;
 			}
 
-			this.Position += movement * deltaTime;
-			this.SendUpdatePosition();
+			// Calculate target position
+			Vector2 targetPosition = this.Position + (movement * deltaTime);
+
+			float minX = GameServer.MapBounds.X;
+			float minY = GameServer.MapBounds.Y;
+			float maxX = GameServer.MapBounds.Width;
+			float maxY = GameServer.MapBounds.Height;
+
+			// Ensure the target position stays within boundaries
+			float clampedX = Math.Max(minX, Math.Min(targetPosition.X, maxX));
+			float clampedY = Math.Max(minY, Math.Min(targetPosition.Y, maxY));
+
+			if (clampedX != this.Position.X || clampedY != this.Position.Y) {
+				targetPosition = new Vector2(clampedX, clampedY);
+				// TODO: implement properly, this is wrong
+				BaseColliderComponent collider = this.GetComponent<BaseColliderComponent>();
+				if (collider is null || !collider.ContainsPoint(targetPosition)) {
+				}
+
+				this.Position = new Vector2(clampedX, clampedY);
+				this.SendUpdatePosition();
+			}
 		}
 	}
+
 }

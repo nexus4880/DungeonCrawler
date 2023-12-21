@@ -1,5 +1,5 @@
-namespace DungeonCrawler.Core.Packets; 
+namespace DungeonCrawler.Core.Packets;
 
 public class EntityDestroyPacket {
-    public Guid EntityId { get; set; }
+	public Guid EntityId { get; set; }
 }

@@ -1,6 +1,5 @@
 namespace DungeonCrawler.Core.Entities;
 
-public interface IClientInitializable
-{
-    void ClientInitialize();
+public interface IClientInitializable {
+	void ClientInitialize();
 }
