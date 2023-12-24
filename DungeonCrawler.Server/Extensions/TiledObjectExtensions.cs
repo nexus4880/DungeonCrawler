@@ -1,4 +1,5 @@
 using System.Drawing;
+using DungeonCrawler.Core.Extensions;
 using TiledCS;
 
 namespace DungeonCrawler.Server.Extensions;
@@ -33,10 +34,14 @@ public static class TiledObjectExtensions {
 
 					break;
 				}
-				case TiledPropertyType.File: {
-					throw new NotSupportedException();
-				}
 				case TiledPropertyType.Object: {
+					Int32 id = Int32.Parse(property.value);
+					result[property.name] = id == 0 ? null :
+						GameServer.MapReferences.GetValueOrDefault(id);
+
+					break;
+				}
+				case TiledPropertyType.File: {
 					throw new NotSupportedException();
 				}
 			}

@@ -10,4 +10,8 @@ public static class DictionaryExtensions {
 	public static T GetValueAsOrThrow<T>(this IDictionary dictionary, String key) {
 		return !dictionary.Contains(key) ? throw new Exception($"Key '{key}' not found in dictionary") : (T)dictionary[key];
 	}
+
+	public static T? GetValueAsOrNull<T>(this IDictionary dictionary, String key) where T: struct {
+		return !dictionary.Contains(key) ? null : (T)dictionary[key];
+	}
 }

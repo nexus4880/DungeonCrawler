@@ -7,5 +7,4 @@ public class InitializeWorldPacket {
 	public Int32 TileWidth { get; set; }
 	public Int32 TileHeight { get; set; }
 	public Int32 TileCount { get; set; }
-	public Guid LocalPlayerEntityId { get; set; }
 }

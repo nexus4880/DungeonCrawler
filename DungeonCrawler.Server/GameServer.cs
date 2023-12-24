@@ -10,7 +10,6 @@ using DungeonCrawler.Core.Extensions;
 using DungeonCrawler.Core.Map;
 using DungeonCrawler.Core.Packets;
 using DungeonCrawler.Server.Entities;
-using DungeonCrawler.Server.Entities.EntityComponents.Renderers;
 using DungeonCrawler.Server.Extensions;
 using DungeonCrawler.Server.Managers;
 using LiteNetLib;
@@ -27,11 +26,12 @@ public static class GameServer {
 	private static TiledMap _map;
 	private static List<BaseTile> _tiles;
 	public static Rectangle MapBounds { get; private set; }
+	public static Dictionary<Int32, Object> MapReferences = new Dictionary<int, object>();
 
 	public static void Initialize(IPAddress ipv4, IPAddress ipv6, Int32 port) {
 		Console.WriteLine("Loading map...");
 		GameServer._map = new TiledMap("./map/untitled.tmx");
-		Dictionary<Int32, TiledTileset> tilesets = GameServer._map.GetTiledTilesets("./map/");
+		GameServer.HandleMapLoad();
 		if (!Directory.Exists("assets")) {
 			throw new Exception("Missing assets directory");
 		}
@@ -56,9 +56,13 @@ public static class GameServer {
 		}
 
 		Console.WriteLine($"Started server on {ip}");
+	}
 
+	private static void HandleMapLoad() {
+		GameServer.MapBounds = new Rectangle(0, 0, GameServer._map.Width * GameServer._map.TileWidth, GameServer._map.Height * GameServer._map.TileHeight);
 		GameServer._tiles = new List<BaseTile>(GameServer._map.Width * GameServer._map.Height);
-		List<TiledLayer> sortedTileLayers = _map.Layers.Where(layer => layer.data is not null && layer.properties.Parse().GetValueAs<int>("LayerIndex", -512) != -512).OrderBy(layer => layer.properties.Parse().GetValueAs<int>("LayerIndex")).ToList();
+		Dictionary<Int32, TiledTileset> tilesets = GameServer._map.GetTiledTilesets("./map/");
+		List<TiledLayer> sortedTileLayers = _map.Layers.Where(layer => layer.data is not null && layer.properties.Parse().ContainsKey("LayerIndex")).OrderBy(layer => layer.properties.Parse().GetValueAs<int>("LayerIndex")).ToList();
 		foreach (TiledLayer tileLayer in sortedTileLayers) {
 			for (int i = 0; i < tileLayer.data.Length; i++) {
 				Int32 gid = tileLayer.data[i];
@@ -85,26 +89,23 @@ public static class GameServer {
 			}
 		}
 
-		// TODO: Later I will make this search every layer
-		foreach (TiledObject lootPoint in GameServer._map.GetLayerByName("Loot").objects) {
-			Type itemType = LNHashCache.GetTypeByName(lootPoint.type);
-			if (itemType is null) {
-				throw new Exception($"Failed to deserialize type: '{lootPoint.type}'");
-			}
+		foreach (TiledLayer layer in GameServer._map.Layers) {
+			if (layer.objects is not null) {
+				foreach (TiledObject tiledObject in layer.objects) {
+					IDictionary objectProperties = tiledObject.properties.Parse();
+					if (objectProperties.GetValueAs<Boolean>("Ignored", false)) {
+						continue;
+					}
 
-			IDictionary itemProperties = lootPoint.properties.Parse();
-			DroppedLootItem droppedItem = GameManager.CreateEntity<DroppedLootItem>(
-				new ListDictionary {
-					{"Guid", Guid.NewGuid()},
-					{"Item", ItemManager.CreateItem(itemType, itemProperties)}
+					if (tiledObject.type is null) {
+						throw new Exception("What the fuck is this object? Set a type in the 'Class' property");
+					}
+
+					Type objectType = LNHashCache.GetTypeByName(tiledObject.type) ??
+						throw new Exception($"Failed to deserialize type: '{tiledObject.type}'");
 				}
-			);
-
-			droppedItem.AddComponent<ServerTextureRenderer>(itemProperties);
-			droppedItem.Position = new Vector2(lootPoint.x, lootPoint.y);
+			}
 		}
-
-		GameServer.MapBounds = new Rectangle(0, 0, GameServer._map.Width * GameServer._map.TileWidth, GameServer._map.Height * GameServer._map.TileHeight);
 	}
 
 	public static void SubscribePacket<T>(Action<T, UserPacketEventArgs> callback) where T : class, new() {
@@ -142,7 +143,6 @@ public static class GameServer {
 		NetDataWriter writer = new NetDataWriter();
 		GameServer.PacketProcessor.Write(writer, new InitializeWorldPacket {
 			EntitiesCount = entities.Count,
-			LocalPlayerEntityId = Guid.Empty,
 			WorldWidth = _map.Width,
 			WorldHeight = _map.Height,
 			TileWidth = _map.TileWidth,
@@ -162,8 +162,6 @@ public static class GameServer {
 	}
 
 	private static void OnWorldLoadedPacket(WorldLoadedPacket packet, UserPacketEventArgs args) {
-		TiledObject[] spawnPoints = GameServer._map.GetLayerByName("SpawnPoints").objects;
-		TiledObject spawnPoint = spawnPoints[Random.Shared.Next(0, spawnPoints.Length)];
 		ServerEntity thisPlayer = GameManager.CreateEntity<ServerPlayerEntity>(
 			new ListDictionary
 			{
@@ -171,7 +169,9 @@ public static class GameServer {
 			}
 		);
 
-		thisPlayer.Position = new Vector2(spawnPoint.y, spawnPoint.y);
+		Vector2 mapSize = new Vector2(GameServer.MapBounds.Width, GameServer.MapBounds.Height);
+		Vector2 spawnPoint = Random.Shared.NextVector2(Vector2.Zero, mapSize);
+		thisPlayer.Position = spawnPoint;
 		thisPlayer.SendCreateEntity();
 		thisPlayer.GiveControl(args.Peer);
 	}

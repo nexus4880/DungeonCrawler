@@ -15,7 +15,9 @@ public class CircleColliderComponent : BaseColliderComponent {
 	}
 
 	public override Boolean CollidesWith(BaseColliderComponent other) {
-		throw new NotImplementedException();
+		Vector2 delta = this.Owner.Position = other.Owner.Position;
+
+		return other.ContainsPoint(this.Owner.Position + (delta * this.Radius));
 	}
 
 	public override Boolean ContainsPoint(Vector2 point) {

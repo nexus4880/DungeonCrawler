@@ -2,6 +2,7 @@
 using System.Numerics;
 using DungeonCrawler.Core.Attributes;
 using DungeonCrawler.Core.Extensions;
+using TiledCS;
 
 namespace DungeonCrawler.Server.Entities.EntityComponents.Colliders;
 

@@ -130,11 +130,6 @@ public static class Networking {
 		receievedGameState = true;
 		for (Int32 i = 0; i < packet.EntitiesCount; i++) {
 			Entity entity = args.PacketReader.GetDeserializable<Entity>();
-			if (entity.EntityId == packet.LocalPlayerEntityId) {
-				GameManager.localPlayer = (PlayerEntity)entity;
-				GameManager.localPlayer.NetPeer = args.Peer;
-			}
-
 			GameManager.AddEntity(entity);
 		}
 

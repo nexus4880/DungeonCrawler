@@ -8,6 +8,7 @@ using DungeonCrawler.Core.Entities.EntityComponents.Animators;
 using DungeonCrawler.Core.Extensions;
 using DungeonCrawler.Server.Entities.EntityComponents.Colliders;
 using DungeonCrawler.Server.Entities.EntityComponents.Renderers;
+using DungeonCrawler.Server.Managers;
 using LiteNetLib;
 
 namespace DungeonCrawler.Server.Entities;
@@ -87,6 +88,7 @@ public class ServerPlayerEntity : ServerEntity {
 
 	private void HandleMovement(float deltaTime) {
 		Vector2 movement = Vector2.Zero;
+		Vector2 currentPosition = this.Position;
 		if (this.CurrentInputs.MoveLeft) {
 			movement.X -= 1f;
 		}
@@ -111,7 +113,7 @@ public class ServerPlayerEntity : ServerEntity {
 			}
 
 			// Calculate target position
-			Vector2 targetPosition = this.Position + (movement * deltaTime);
+			Vector2 targetPosition = currentPosition + (movement * deltaTime);
 
 			float minX = GameServer.MapBounds.X;
 			float minY = GameServer.MapBounds.Y;
@@ -122,14 +124,32 @@ public class ServerPlayerEntity : ServerEntity {
 			float clampedX = Math.Max(minX, Math.Min(targetPosition.X, maxX));
 			float clampedY = Math.Max(minY, Math.Min(targetPosition.Y, maxY));
 
-			if (clampedX != this.Position.X || clampedY != this.Position.Y) {
+			if (clampedX != currentPosition.X || clampedY != currentPosition.Y) {
 				targetPosition = new Vector2(clampedX, clampedY);
 				// TODO: implement properly, this is wrong
 				BaseColliderComponent collider = this.GetComponent<BaseColliderComponent>();
-				if (collider is null || !collider.ContainsPoint(targetPosition)) {
+				if (collider is not null) {
+					BaseColliderComponent detectedCollision = null;
+					foreach (Entity entity in GameManager.EntityList.Values) {
+						if (entity == this) {
+							continue;
+						}
+
+						BaseColliderComponent otherCollider = entity.GetComponent<BaseColliderComponent>();
+						if (otherCollider is null) { continue; }
+						if (collider.CollidesWith(otherCollider)) {
+							detectedCollision = otherCollider;
+
+							break;
+						}
+					}
+
+					if (detectedCollision is not null) {
+						return;
+					}
 				}
 
-				this.Position = new Vector2(clampedX, clampedY);
+				this.Position = targetPosition;
 				this.SendUpdatePosition();
 			}
 		}
