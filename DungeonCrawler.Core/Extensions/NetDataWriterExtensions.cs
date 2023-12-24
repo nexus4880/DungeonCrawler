@@ -7,7 +7,7 @@ using LiteNetLib.Utils;
 namespace DungeonCrawler.Core.Extensions;
 
 public static class NetDataWriterExtensions {
-	public static void PutDeserializable(this NetDataWriter writer, Object value) {
+	public static void PutDeserializable(this NetDataWriter writer, object value) {
 		if (value is null) {
 			throw new Exception("Cannot write null");
 		}
@@ -16,8 +16,8 @@ public static class NetDataWriterExtensions {
 			throw new Exception($"Cannot put {value.GetType()} as INetSerializable");
 		}
 
-		Type valueType = value.GetType();
-		UInt64 hash = LNHashCache.GetHash(valueType);
+		var valueType = value.GetType();
+		var hash = LNHashCache.GetHash(valueType);
 		writer.Put(hash);
 		writer.Put(netSerializable);
 	}
@@ -43,8 +43,8 @@ public static class NetDataWriterExtensions {
 		writer.Put(value.Height);
 	}
 
-	public static unsafe void Put<T>(this NetDataWriter writer, KeyValuePair<String, T> pair) where T : unmanaged {
-		Byte[] bytes = new byte[sizeof(T)];
+	public static unsafe void Put<T>(this NetDataWriter writer, KeyValuePair<string, T> pair) where T : unmanaged {
+		var bytes = new byte[sizeof(T)];
 		if (!MemoryMarshal.TryWrite(bytes, pair.Value)) {
 			throw new Exception($"Failed to write bytes from {pair.Value}");
 		}
@@ -54,11 +54,11 @@ public static class NetDataWriterExtensions {
 	}
 
 	public static void Put(this NetDataWriter writer, IDictionary dictionary) {
-		writer.Put((Byte)dictionary.Count);
+		writer.Put((byte)dictionary.Count);
 		foreach (DictionaryEntry entry in dictionary) {
-			writer.Put((String)entry.Key);
+			writer.Put((string)entry.Key);
 			if (entry.Value is byte b) {
-				writer.Put((Byte)TypeCode.Byte);
+				writer.Put((byte)TypeCode.Byte);
 				writer.Put(b);
 			}
 			else {

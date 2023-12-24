@@ -13,6 +13,6 @@ public class ClientTextureRenderer : TextureRenderer, IClientInitializable {
 	}
 
 	public override void Draw() {
-		DrawTexture(this._texture, (Int32)this.Owner.Position.X, (Int32)this.Owner.Position.Y, WHITE);
+		DrawTexture(this._texture, (int)this.Owner.Position.X, (int)this.Owner.Position.Y, WHITE);
 	}
 }

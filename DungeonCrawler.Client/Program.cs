@@ -6,17 +6,17 @@ using DungeonCrawler.Core.Entities.EntityComponents;
 using DungeonCrawler.Core.Items;
 using LiteNetLib;
 
-IPAddress ip = args.Length > 0 ? IPAddress.Parse(args[0]) : IPAddress.Loopback;
-Int32 port = args.Length > 1 ? Int32.Parse(args[1]) : 8278;
+var ip = args.Length > 0 ? IPAddress.Parse(args[0]) : IPAddress.Loopback;
+var port = args.Length > 1 ? int.Parse(args[1]) : 8278;
 
 Networking.Initialize();
 
 // Everything that we are expecting to be able to deserialize should be registered here
-Int32 itemCount = LNHashCache.RegisterAllOfType<Item>();
+var itemCount = LNHashCache.RegisterAllOfType<Item>();
 Console.WriteLine($"Registered {itemCount} item types");
-Int32 entityCount = LNHashCache.RegisterAllOfType<Entity>();
+var entityCount = LNHashCache.RegisterAllOfType<Entity>();
 Console.WriteLine($"Registered {entityCount} entity types");
-Int32 entityComponentCount = LNHashCache.RegisterAllOfType<BaseEntityComponent>();
+var entityComponentCount = LNHashCache.RegisterAllOfType<BaseEntityComponent>();
 Console.WriteLine($"Registered {entityComponentCount} entity component types");
 
 Networking.LocalPeer =
@@ -32,7 +32,7 @@ if (Networking.LocalPeer.ConnectionState != ConnectionState.Connected) {
 SetConfigFlags(ConfigFlags.FLAG_VSYNC_HINT | ConfigFlags.FLAG_MSAA_4X_HINT | ConfigFlags.FLAG_WINDOW_RESIZABLE);
 InitWindow(1280, 720, "DungeonCrawler");
 while (!WindowShouldClose()) {
-	Single deltaTime = GetFrameTime();
+	var deltaTime = GetFrameTime();
 	Networking.Update();
 	if (Networking.receievedGameState) {
 		GameManager.Update(deltaTime);

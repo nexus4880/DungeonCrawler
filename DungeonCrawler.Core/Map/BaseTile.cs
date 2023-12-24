@@ -5,10 +5,10 @@ using LiteNetLib.Utils;
 namespace DungeonCrawler.Core.Map;
 
 public class BaseTile : INetSerializable {
-	public String TilesetSource { get; set; }
+	public string TilesetSource { get; set; }
 	public Point WorldTilePosition { get; set; }
 	public Rectangle SourceRectPosition { get; set; }
-	public Int32 Layer { get; set; }
+	public int Layer { get; set; }
 
 	public void Deserialize(NetDataReader reader) {
 		this.TilesetSource = reader.GetString();

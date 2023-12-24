@@ -2,20 +2,20 @@ using System.IO.Compression;
 
 namespace DungeonCrawler.Core;
 
-public class VFS : Dictionary<String, Byte[]> {
+public class VFS : Dictionary<string, byte[]> {
 	public static VFS FromArchive(ZipArchive archive) {
 		VFS result = [];
-		List<Byte> buffer = new List<Byte>(UInt16.MaxValue);
-		foreach (ZipArchiveEntry entry in archive.Entries) {
-			Stream entryStream = entry.Open();
-			Int32 readByte;
+		var buffer = new List<byte>(ushort.MaxValue);
+		foreach (var entry in archive.Entries) {
+			var entryStream = entry.Open();
+			int readByte;
 			do {
 				readByte = entryStream.ReadByte();
 				if (readByte == -1) {
 					break;
 				}
 
-				buffer.Add((Byte)readByte);
+				buffer.Add((byte)readByte);
 			} while (true);
 
 			result[entry.FullName] = buffer[0..buffer.Count].ToArray();
@@ -25,15 +25,15 @@ public class VFS : Dictionary<String, Byte[]> {
 		return result;
 	}
 
-	public unsafe Byte* PinnedBytes(String resource, out Int32 length) {
-		if (!this.TryGetValue(resource, out Byte[] bytes)) {
+	public unsafe byte* PinnedBytes(string resource, out int length) {
+		if (!this.TryGetValue(resource, out var bytes)) {
 			length = 0;
 
 			return null;
 		}
 
 		length = bytes.Length;
-		fixed (Byte* pBytes = bytes) {
+		fixed (byte* pBytes = bytes) {
 			return pBytes;
 		}
 	}

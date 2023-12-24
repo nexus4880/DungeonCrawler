@@ -3,11 +3,10 @@
 namespace DungeonCrawler.Core;
 
 public struct PlayerInputs : INetSerializable, IEquatable<PlayerInputs> {
-	public Boolean MoveUp { get; set; }
-	public Boolean MoveDown { get; set; }
-	public Boolean MoveLeft { get; set; }
-	public Boolean MoveRight { get; set; }
-
+	public bool MoveUp { get; set; }
+	public bool MoveDown { get; set; }
+	public bool MoveLeft { get; set; }
+	public bool MoveRight { get; set; }
 
 	public void Serialize(NetDataWriter writer) {
 		writer.Put(this.MoveUp);
@@ -23,25 +22,25 @@ public struct PlayerInputs : INetSerializable, IEquatable<PlayerInputs> {
 		this.MoveRight = reader.GetBool();
 	}
 
-	public static Boolean operator ==(PlayerInputs left, PlayerInputs right) {
+	public static bool operator ==(PlayerInputs left, PlayerInputs right) {
 		return left.MoveUp == right.MoveUp && left.MoveDown == right.MoveDown &&
 			left.MoveLeft == right.MoveLeft && left.MoveRight == right.MoveRight;
 	}
 
-	public static Boolean operator !=(PlayerInputs left, PlayerInputs right) {
+	public static bool operator !=(PlayerInputs left, PlayerInputs right) {
 		return !(left == right);
 	}
 
-	public Boolean Equals(PlayerInputs other) {
+	public bool Equals(PlayerInputs other) {
 		return this.MoveUp == other.MoveUp && this.MoveDown == other.MoveDown &&
 			this.MoveLeft == other.MoveLeft && this.MoveRight == other.MoveRight;
 	}
 
-	public override Boolean Equals(Object obj) {
+	public override bool Equals(object obj) {
 		return obj is PlayerInputs other && this.Equals(other);
 	}
 
-	public override Int32 GetHashCode() {
+	public override int GetHashCode() {
 		return HashCode.Combine(this.MoveUp, this.MoveDown, this.MoveLeft, this.MoveRight);
 	}
 }

@@ -7,15 +7,15 @@ using LiteNetLib.Utils;
 namespace DungeonCrawler.Core.Extensions;
 
 public static class NetDataReaderExtensions {
-	public static Object GetDeserializable(this NetDataReader reader) {
-		UInt64 hash = reader.GetULong();
-		Type type = LNHashCache.GetType(hash);
+	public static object GetDeserializable(this NetDataReader reader) {
+		var hash = reader.GetULong();
+		var type = LNHashCache.GetType(hash);
 		if (type is null) {
 			throw new Exception($"Cannot deserialize hash: {hash}");
 		}
 
 		Console.WriteLine($"Deserialized {type}");
-		Object result = Activator.CreateInstance(type);
+		var result = Activator.CreateInstance(type);
 		if (result is null) {
 			throw new Exception($"Failed to create instance of {type}");
 		}
@@ -32,13 +32,13 @@ public static class NetDataReaderExtensions {
 	}
 
 	public static Item GetItem(this NetDataReader reader) {
-		UInt64 hash = reader.GetULong();
-		Type type = LNHashCache.GetType(hash);
+		var hash = reader.GetULong();
+		var type = LNHashCache.GetType(hash);
 		if (type is null) {
 			throw new Exception($"Cannot deserialize item hash {hash}");
 		}
 
-		Item item = (Item)Activator.CreateInstance(type) ?? throw new Exception($"Cannot instantiate {type}");
+		var item = (Item)Activator.CreateInstance(type) ?? throw new Exception($"Cannot instantiate {type}");
 		item.Deserialize(reader);
 
 		return item;
@@ -61,11 +61,11 @@ public static class NetDataReaderExtensions {
 	}
 
 	public static IDictionary GetDictionary(this NetDataReader reader) {
-		Byte length = reader.GetByte();
-		Hashtable result = new Hashtable(length);
-		for (Byte i = 0; i < length; i++) {
-			String key = reader.GetString();
-			TypeCode typeCode = (TypeCode)reader.GetByte();
+		var length = reader.GetByte();
+		var result = new Hashtable(length);
+		for (byte i = 0; i < length; i++) {
+			var key = reader.GetString();
+			var typeCode = (TypeCode)reader.GetByte();
 			switch (typeCode) {
 				case TypeCode.Byte: {
 					result[key] = reader.GetByte();

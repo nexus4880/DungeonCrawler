@@ -5,9 +5,9 @@ using LiteNetLib.Utils;
 namespace DungeonCrawler.Core.Entities.EntityComponents.Renderers;
 
 public abstract class CircleRenderer : BaseRenderer {
-	public Single Radius { get; set; }
-	public UInt32 Color { get; set; }
-	public Boolean Filled { get; set; }
+	public float Radius { get; set; }
+	public uint Color { get; set; }
+	public bool Filled { get; set; }
 
 	public override void Deserialize(NetDataReader reader) {
 		base.Deserialize(reader);
@@ -18,7 +18,7 @@ public abstract class CircleRenderer : BaseRenderer {
 
 	public override void Initialize(IDictionary properties) {
 		base.Initialize(properties);
-		this.Radius = properties.GetValueAsOrThrow<Single>("Radius");
+		this.Radius = properties.GetValueAsOrThrow<float>("Radius");
 		this.Color = properties.GetValueAs<UInt32>("Color", 0xFFFFFFFF);
 		this.Filled = properties.GetValueAs<Boolean>("Filled", false);
 	}

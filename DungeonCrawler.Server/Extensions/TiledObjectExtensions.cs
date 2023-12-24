@@ -1,12 +1,11 @@
 using System.Drawing;
-using DungeonCrawler.Core.Extensions;
 using TiledCS;
 
 namespace DungeonCrawler.Server.Extensions;
 
 public static class TiledObjectExtensions {
-	public static Dictionary<String, Object> Parse(this TiledProperty[] properties) {
-		Dictionary<String, Object> result = new Dictionary<string, Object>(properties.Length);
+	public static Dictionary<string, object> Parse(this TiledProperty[] properties) {
+		var result = new Dictionary<string, object>(properties.Length);
 		foreach (var property in properties) {
 			switch (property.type) {
 				case TiledPropertyType.String: {
@@ -15,27 +14,27 @@ public static class TiledObjectExtensions {
 					break;
 				}
 				case TiledPropertyType.Bool: {
-					result[property.name] = Boolean.Parse(property.value);
+					result[property.name] = bool.Parse(property.value);
 
 					break;
 				}
 				case TiledPropertyType.Color: {
-					result[property.name] = Color.FromArgb(Int32.Parse(property.value));
+					result[property.name] = Color.FromArgb(int.Parse(property.value));
 
 					break;
 				}
 				case TiledPropertyType.Float: {
-					result[property.name] = Single.Parse(property.value);
+					result[property.name] = float.Parse(property.value);
 
 					break;
 				}
 				case TiledPropertyType.Int: {
-					result[property.name] = Int32.Parse(property.value);
+					result[property.name] = int.Parse(property.value);
 
 					break;
 				}
 				case TiledPropertyType.Object: {
-					Int32 id = Int32.Parse(property.value);
+					var id = int.Parse(property.value);
 					result[property.name] = id == 0 ? null :
 						GameServer.MapReferences.GetValueOrDefault(id);
 

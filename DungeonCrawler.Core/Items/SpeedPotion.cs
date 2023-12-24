@@ -5,10 +5,10 @@ using LiteNetLib.Utils;
 namespace DungeonCrawler.Core.Items;
 
 public class SpeedPotion : Item {
-	public Single Duration { get; set; } = 15f;
-	public Single Multiplier { get; set; } = 2f;
+	public float Duration { get; set; } = 15f;
+	public float Multiplier { get; set; } = 2f;
 
-	public override String Name { get; set; } = "Potion of Speed";
+	public override string Name { get; set; } = "Potion of Speed";
 
 	public override void Serialize(NetDataWriter writer) {
 		base.Serialize(writer);

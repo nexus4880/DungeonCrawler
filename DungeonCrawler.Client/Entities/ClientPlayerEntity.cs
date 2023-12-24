@@ -7,9 +7,9 @@ namespace DungeonCrawler.Client.Entities;
 
 [HashAs(typeof(DungeonCrawler.Core.Entities.PlayerEntity))]
 public class ClientPlayerEntity : PlayerEntity {
-	public override void Update(Single deltaTime) {
+	public override void Update(float deltaTime) {
 		base.Update(deltaTime);
-		PlayerInputs currentInputs = new PlayerInputs {
+		var currentInputs = new PlayerInputs {
 			MoveUp = IsKeyDown(KeyboardKey.KEY_W),
 			MoveDown = IsKeyDown(KeyboardKey.KEY_S),
 			MoveLeft = IsKeyDown(KeyboardKey.KEY_A),

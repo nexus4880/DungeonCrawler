@@ -5,12 +5,12 @@ using LiteNetLib.Utils;
 namespace DungeonCrawler.Core.Entities.EntityComponents;
 
 public class MovementSpeedBuffComponent : BaseEntityComponent {
-	public Single Value { get; set; }
-	public Single Duration { get; set; }
+	public float Value { get; set; }
+	public float Duration { get; set; }
 
 	public override void Initialize(IDictionary properties) {
-		this.Value = properties.GetValueAsOrThrow<Single>("Value");
-		this.Duration = properties.GetValueAsOrThrow<Single>("Duration");
+		this.Value = properties.GetValueAsOrThrow<float>("Value");
+		this.Duration = properties.GetValueAsOrThrow<float>("Duration");
 	}
 
 	public override void Serialize(NetDataWriter writer) {

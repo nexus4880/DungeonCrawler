@@ -2,15 +2,15 @@
 
 public class BasicTimer {
 	private readonly Action _callback;
-	private readonly Single _interval;
-	private Single _timeElapsed;
+	private readonly float _interval;
+	private float _timeElapsed;
 
-	public BasicTimer(Single interval, Action callback = null) {
+	public BasicTimer(float interval, Action callback = null) {
 		this._interval = interval;
 		this._callback = callback;
 	}
 
-	public Boolean Update(Single deltaTime) {
+	public bool Update(float deltaTime) {
 		this._timeElapsed += deltaTime;
 
 		if (this._timeElapsed >= this._interval) {

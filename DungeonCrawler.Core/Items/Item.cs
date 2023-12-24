@@ -6,7 +6,7 @@ namespace DungeonCrawler.Core.Items;
 
 public abstract class Item : INetSerializable {
 	public Guid Id { get; set; }
-	public abstract String Name { get; set; }
+	public abstract string Name { get; set; }
 	public IInventoryOwner Owner { get; set; }
 
 	public virtual void Serialize(NetDataWriter writer) {

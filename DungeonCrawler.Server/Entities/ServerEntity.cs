@@ -10,14 +10,14 @@ namespace DungeonCrawler.Server.Entities;
 
 public class ServerEntity : Entity {
 	public void SendUpdatePosition() {
-		EntityMovedPacket packet = new EntityMovedPacket { EntityId = this.EntityId, Position = this.Position };
-		NetDataWriter writer = new NetDataWriter();
+		var packet = new EntityMovedPacket { EntityId = this.EntityId, Position = this.Position };
+		var writer = new NetDataWriter();
 		GameServer.PacketProcessor.Write(writer, packet);
 		GameServer.NetManager.SendToAll(writer, DeliveryMethod.ReliableOrdered);
 	}
 
 	public void SendUpdateComponent(BaseEntityComponent component, IDictionary data) {
-		NetDataWriter writer = new NetDataWriter();
+		var writer = new NetDataWriter();
 		GameServer.PacketProcessor.Write(writer, new UpdateComponentPacket {
 			Entity = this.EntityId,
 			Component = component.ComponentId
@@ -27,14 +27,14 @@ public class ServerEntity : Entity {
 	}
 
 	public void SendCreateEntity() {
-		NetDataWriter writer = new NetDataWriter();
+		var writer = new NetDataWriter();
 		GameServer.PacketProcessor.Write(writer, new EntityCreatePacket());
 		writer.PutDeserializable(this);
 		GameServer.NetManager.SendToAll(writer, DeliveryMethod.ReliableOrdered);
 	}
 
 	public void GiveControl(NetPeer peer) {
-		NetDataWriter writer = new NetDataWriter();
+		var writer = new NetDataWriter();
 		GameServer.PacketProcessor.Write(writer, new SetEntityContextPacket { EntityId = this.EntityId });
 		peer.Send(writer, DeliveryMethod.ReliableOrdered);
 	}

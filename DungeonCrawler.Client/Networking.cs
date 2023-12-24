@@ -1,8 +1,6 @@
-﻿using System.Collections;
-using System.IO.Compression;
+﻿using System.IO.Compression;
 using DungeonCrawler.Core;
 using DungeonCrawler.Core.Entities;
-using DungeonCrawler.Core.Entities.EntityComponents;
 using DungeonCrawler.Core.Extensions;
 using DungeonCrawler.Core.Packets;
 using LiteNetLib;
@@ -15,7 +13,7 @@ public static class Networking {
 	public static NetManager NetManager { get; private set; }
 	public static EventBasedNetListener EventBasedNetListener { get; private set; }
 	public static NetPeer LocalPeer { get; set; }
-	public static NetDataWriter Writer { get; } = new NetDataWriter(true, UInt16.MaxValue);
+	public static NetDataWriter Writer { get; } = new NetDataWriter(true, ushort.MaxValue);
 	public static bool receievedGameState = false;
 	public static VFS currentVFS;
 
@@ -39,45 +37,44 @@ public static class Networking {
 	}
 
 	private static void OnUpdateComponent(UpdateComponentPacket packet, UserPacketEventArgs args) {
-		Entity entity = GameManager.GetEntityByID(packet.Entity);
+		var entity = GameManager.GetEntityByID(packet.Entity);
 		if (entity is null) {
 			return;
 		}
 
-
-		BaseEntityComponent componentToNotify = entity.GetComponentByGUID(packet.Component);
+		var componentToNotify = entity.GetComponentByGUID(packet.Component);
 		if (componentToNotify is null) {
 			return;
 		}
 
-		IDictionary properties = args.PacketReader.GetDictionary();
+		var properties = args.PacketReader.GetDictionary();
 		componentToNotify.OnStateChange(properties);
 	}
 
 	private static void OnInitializeAssets(InitializeAssetsPacket packet, UserPacketEventArgs args) {
-		Int32 assetsBufferSize = args.PacketReader.GetInt();
+		var assetsBufferSize = args.PacketReader.GetInt();
 		Console.WriteLine($"[OnInitializeAssets] assets buffer size: {assetsBufferSize}");
-		Byte[] buffer = new byte[assetsBufferSize];
+		var buffer = new byte[assetsBufferSize];
 		args.PacketReader.GetBytes(buffer, buffer.Length);
-		using MemoryStream sm = new MemoryStream(buffer);
-		using ZipArchive zip = new ZipArchive(sm, ZipArchiveMode.Read);
+		using var sm = new MemoryStream(buffer);
+		using var zip = new ZipArchive(sm, ZipArchiveMode.Read);
 		Networking.currentVFS = VFS.FromArchive(zip);
 		GameManager.TextureHandler = new AssetHandler<Texture>(currentVFS, AssetHandlerTextureInitializer);
 		GameManager.ImageHandler = new AssetHandler<Image>(currentVFS, AssetHandlerImageInitializer);
 		PacketProcessor.Write(Writer, new AssetsLoadedPacket());
 	}
 
-	private static unsafe Texture AssetHandlerTextureInitializer(Byte[] bytes) {
-		fixed (Byte* pBytes = bytes) {
-			Image img = LoadImageFromMemory(".png", pBytes, bytes.Length);
-			Texture texture = LoadTextureFromImage(img);
+	private static unsafe Texture AssetHandlerTextureInitializer(byte[] bytes) {
+		fixed (byte* pBytes = bytes) {
+			var img = LoadImageFromMemory(".png", pBytes, bytes.Length);
+			var texture = LoadTextureFromImage(img);
 			UnloadImage(img);
 			return texture;
 		}
 	}
 
-	private static unsafe Image AssetHandlerImageInitializer(Byte[] bytes) {
-		fixed (Byte* pBytes = bytes) {
+	private static unsafe Image AssetHandlerImageInitializer(byte[] bytes) {
+		fixed (byte* pBytes = bytes) {
 			return LoadImageFromMemory(".png", pBytes, bytes.Length);
 		}
 	}
@@ -89,7 +86,7 @@ public static class Networking {
 
 	private static void SetEntityContext(SetEntityContextPacket packet, UserPacketEventArgs args) {
 		if (packet.EntityId != Guid.Empty) {
-			Entity entity = GameManager.GetEntityByID(packet.EntityId);
+			var entity = GameManager.GetEntityByID(packet.EntityId);
 			switch (entity) {
 				case PlayerEntity playerEntity: {
 					Console.WriteLine($"[SetEntityContext] set entity context to {packet.EntityId}");
@@ -116,7 +113,7 @@ public static class Networking {
 
 	private static void OnEntityCreated(EntityCreatePacket packet, UserPacketEventArgs args) {
 		try {
-			Entity entity = args.PacketReader.GetDeserializable<Entity>();
+			var entity = args.PacketReader.GetDeserializable<Entity>();
 			Console.WriteLine($"[OnEntityCreated] {entity.EntityId} was created at {entity.Position} of type '{entity.GetType()}'");
 			GameManager.AddEntity(entity);
 		}
@@ -128,15 +125,15 @@ public static class Networking {
 	private static void OnInitializeWorld(InitializeWorldPacket packet, UserPacketEventArgs args) {
 		Console.WriteLine($"[OnInitializeWorld] {packet.EntitiesCount} entities");
 		receievedGameState = true;
-		for (Int32 i = 0; i < packet.EntitiesCount; i++) {
-			Entity entity = args.PacketReader.GetDeserializable<Entity>();
+		for (var i = 0; i < packet.EntitiesCount; i++) {
+			var entity = args.PacketReader.GetDeserializable<Entity>();
 			GameManager.AddEntity(entity);
 		}
 
 		GameManager.tiles = new List<ClientBaseTile>(packet.WorldWidth * packet.WorldHeight);
 		GameManager.tileSize = (packet.TileWidth, packet.TileHeight);
-		for (Int32 i = 0; i < packet.TileCount; i++) {
-			ClientBaseTile tile = args.PacketReader.Get(() => new ClientBaseTile());
+		for (var i = 0; i < packet.TileCount; i++) {
+			var tile = args.PacketReader.Get(() => new ClientBaseTile());
 			GameManager.tiles.Add(tile);
 			tile.Initialize();
 		}
@@ -145,7 +142,7 @@ public static class Networking {
 	}
 
 	private static void OnEntityMoved(EntityMovedPacket packet, UserPacketEventArgs args) {
-		Entity entity = GameManager.GetEntityByID(packet.EntityId);
+		var entity = GameManager.GetEntityByID(packet.EntityId);
 		if (entity is null) {
 			Console.WriteLine($"[OnEntityMoved] {packet.EntityId} doesn't exist on client");
 
@@ -168,7 +165,7 @@ public static class Networking {
 		Networking.PacketProcessor.SubscribeReusable(onReceive);
 	}
 
-	private static void OnNetworkReceive(NetPeer peer, NetPacketReader reader, Byte channel,
+	private static void OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channel,
 		DeliveryMethod deliverymethod) {
 		try {
 			Networking.PacketProcessor.ReadAllPackets(reader,

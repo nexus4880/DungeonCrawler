@@ -5,14 +5,14 @@ using DungeonCrawler.Core.Helpers;
 namespace DungeonCrawler.Core;
 
 public static class LNHashCache {
-	private static Dictionary<Type, UInt64> _typeToHash = [];
-	public static Dictionary<UInt64, Type> _hashToType = [];
+	private static Dictionary<Type, ulong> _typeToHash = [];
+	public static Dictionary<ulong, Type> _hashToType = [];
 
-	public static Int32 RegisterAllOfType<T>() {
-		Int32 registeredTypes = 0;
-		foreach (Type types in AppDomain.CurrentDomain.GetAssemblies().SelectMany(asm => asm.GetTypes()).Where(t => t.IsAssignableTo(typeof(T)))) {
+	public static int RegisterAllOfType<T>() {
+		var registeredTypes = 0;
+		foreach (var types in AppDomain.CurrentDomain.GetAssemblies().SelectMany(asm => asm.GetTypes()).Where(t => t.IsAssignableTo(typeof(T)))) {
 			try {
-				LNHashCache.RegisterType(types);
+				_ = LNHashCache.RegisterType(types);
 				registeredTypes++;
 			}
 			catch (RegisterTypeException) {
@@ -22,7 +22,7 @@ public static class LNHashCache {
 		return registeredTypes;
 	}
 
-	public static UInt64 RegisterType<T>() {
+	public static ulong RegisterType<T>() {
 		return LNHashCache.RegisterType(typeof(T));
 	}
 
@@ -42,7 +42,7 @@ public static class LNHashCache {
 		}
 	}
 
-	public static UInt64 RegisterType(Type type) {
+	public static ulong RegisterType(Type type) {
 		ArgumentNullException.ThrowIfNull(type);
 		if (type.IsAbstract) {
 			throw new AbstractTypeException(type);
@@ -52,17 +52,17 @@ public static class LNHashCache {
 			throw new GenericTypeException(type);
 		}
 
-		if (LNHashCache._typeToHash.TryGetValue(type, out UInt64 value)) {
+		if (LNHashCache._typeToHash.TryGetValue(type, out var value)) {
 			return value;
 		}
 
-		HashAsAttribute hashAsAttribute = type.GetCustomAttribute<HashAsAttribute>();
-		UInt64 hash = StringHelper.HashString(hashAsAttribute?.Value ?? type.ToString());
+		var hashAsAttribute = type.GetCustomAttribute<HashAsAttribute>();
+		var hash = StringHelper.HashString(hashAsAttribute?.Value ?? type.ToString());
 		if (LNHashCache._hashToType.ContainsKey(hash)) {
 			return hash;
 		}
 
-		String text =
+		var text =
 			hashAsAttribute is not null ?
 			$"Registered Type: '{type}' with fixed hash {hash}" :
 			$"Registered Type: '{type}' | {hash}";
@@ -73,19 +73,19 @@ public static class LNHashCache {
 		return hash;
 	}
 
-	public static UInt64 GetHash<T>() {
+	public static ulong GetHash<T>() {
 		return LNHashCache.GetHash(typeof(T));
 	}
 
-	public static UInt64 GetHash(Type type) {
-		return !LNHashCache._typeToHash.TryGetValue(type, out UInt64 hash) ? RegisterType(type) : hash;
+	public static ulong GetHash(Type type) {
+		return !LNHashCache._typeToHash.TryGetValue(type, out var hash) ? RegisterType(type) : hash;
 	}
 
-	public static Type GetTypeByName(String hashText) {
+	public static Type GetTypeByName(string hashText) {
 		return LNHashCache.GetType(StringHelper.HashString(hashText));
 	}
 
-	public static Type GetType(UInt64 hash) {
+	public static Type GetType(ulong hash) {
 		return LNHashCache._hashToType.GetValueOrDefault(hash);
 	}
 }

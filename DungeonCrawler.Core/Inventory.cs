@@ -8,11 +8,11 @@ public class Inventory : INetSerializable {
 	private readonly Dictionary<EEquipmentSlot, Item> _equipment = [];
 	private List<Item>[] _hotbar;
 
-	public Inventory(IInventoryOwner owner, Int32 hotbarLength = 0) {
+	public Inventory(IInventoryOwner owner, int hotbarLength = 0) {
 		this.Owner = owner;
 		if (hotbarLength > 1) {
 			this._hotbar = new List<Item>[hotbarLength];
-			for (Int32 i = 0; i < hotbarLength; i++) {
+			for (var i = 0; i < hotbarLength; i++) {
 				this._hotbar[i] = [];
 			}
 		}
@@ -22,17 +22,17 @@ public class Inventory : INetSerializable {
 
 	public void Serialize(NetDataWriter writer) {
 		writer.Put(this._equipment.Count);
-		foreach ((EEquipmentSlot part, Item item) in this._equipment) {
-			writer.Put((Byte)part);
+		foreach ((var part, var item) in this._equipment) {
+			writer.Put((byte)part);
 			writer.Put(item);
 		}
 
-		Boolean hasHotbar = this._hotbar is not null;
+		var hasHotbar = this._hotbar is not null;
 		writer.Put(hasHotbar);
 		if (hasHotbar) {
-			foreach (List<Item> hotbar in this._hotbar) {
+			foreach (var hotbar in this._hotbar) {
 				writer.Put(hotbar.Count);
-				foreach (Item item in hotbar) {
+				foreach (var item in hotbar) {
 					writer.Put(item);
 				}
 			}
@@ -40,16 +40,16 @@ public class Inventory : INetSerializable {
 	}
 
 	public void Deserialize(NetDataReader reader) {
-		Int32 equipmentCount = reader.GetInt();
-		for (Int32 i = 0; i < equipmentCount; i++) {
-			EEquipmentSlot slot = (EEquipmentSlot)reader.GetByte();
-			Item item = reader.GetItem();
+		var equipmentCount = reader.GetInt();
+		for (var i = 0; i < equipmentCount; i++) {
+			var slot = (EEquipmentSlot)reader.GetByte();
+			var item = reader.GetItem();
 			this._equipment[slot] = item;
 		}
 
-		Boolean hasHotbar = reader.GetBool();
+		var hasHotbar = reader.GetBool();
 		if (hasHotbar) {
-			Int32 hotbarsCount = reader.GetInt();
+			var hotbarsCount = reader.GetInt();
 			if (this._hotbar is null) {
 				this._hotbar = new List<Item>[hotbarsCount];
 			}
@@ -59,17 +59,17 @@ public class Inventory : INetSerializable {
 				}
 			}
 
-			for (Int32 i = 0; i < hotbarsCount; i++) {
-				Int32 hotbarLength = reader.GetInt();
+			for (var i = 0; i < hotbarsCount; i++) {
+				var hotbarLength = reader.GetInt();
 				this._hotbar[i] = new List<Item>(hotbarLength);
-				for (Int32 j = 0; j < hotbarLength; j++) {
+				for (var j = 0; j < hotbarLength; j++) {
 					this._hotbar[i].Add(reader.GetItem());
 				}
 			}
 		}
 	}
 
-	public Boolean AddItem(Item item) {
+	public bool AddItem(Item item) {
 		if (this._hotbar is null) {
 			return false;
 		}

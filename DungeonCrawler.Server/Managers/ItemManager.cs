@@ -14,7 +14,7 @@ public static class ItemManager {
 	}
 
 	public static Item CreateItem(Type itemType, IDictionary properties) {
-		Item item = (Item)Activator.CreateInstance(itemType)!;
+		var item = (Item)Activator.CreateInstance(itemType)!;
 		item.Id = Guid.NewGuid();
 		ItemManager._items[item.Id] = item;
 		item.Initialize(properties);
@@ -22,13 +22,13 @@ public static class ItemManager {
 		return item;
 	}
 
-	public static Boolean ItemExists(Guid id) {
+	public static bool ItemExists(Guid id) {
 		return ItemManager._items.ContainsKey(id);
 	}
 
 	public static void RemoveItem(Guid id) {
 		if (ItemManager._items.Remove(id)) {
-			NetDataWriter writer = new NetDataWriter();
+			var writer = new NetDataWriter();
 			GameServer.PacketProcessor.Write(writer, new RemoveItemPacket { ItemId = id });
 			Console.WriteLine($"Sending removal of item {id}");
 			GameServer.NetManager.SendToAll(writer, DeliveryMethod.ReliableOrdered);

@@ -14,9 +14,9 @@ public abstract class Entity : INetSerializable {
 	public virtual void Serialize(NetDataWriter writer) {
 		writer.Put(this.EntityId);
 		writer.Put(this.Position);
-		BaseEntityComponent[] entityComponents = this._entityComponents.Where(component => component.GetType().GetCustomAttribute<NetworkIgnoreAttribute>() is null).ToArray();
-		writer.Put((Byte)entityComponents.Length);
-		foreach (BaseEntityComponent entityComponent in entityComponents) {
+		var entityComponents = this._entityComponents.Where(component => component.GetType().GetCustomAttribute<NetworkIgnoreAttribute>() is null).ToArray();
+		writer.Put((byte)entityComponents.Length);
+		foreach (var entityComponent in entityComponents) {
 			writer.PutDeserializable(entityComponent);
 		}
 	}
@@ -24,10 +24,10 @@ public abstract class Entity : INetSerializable {
 	public virtual void Deserialize(NetDataReader reader) {
 		this.EntityId = reader.GetGuid();
 		this.Position = reader.GetVector2();
-		Byte componentsCount = reader.GetByte();
-		this._entityComponents.EnsureCapacity(componentsCount);
-		for (Byte i = 0; i < componentsCount; i++) {
-			BaseEntityComponent component = reader.GetDeserializable<BaseEntityComponent>();
+		var componentsCount = reader.GetByte();
+		_ = this._entityComponents.EnsureCapacity(componentsCount);
+		for (byte i = 0; i < componentsCount; i++) {
+			var component = reader.GetDeserializable<BaseEntityComponent>();
 			component.Owner = this;
 			if (component is IClientInitializable clientInitializable) {
 				clientInitializable.ClientInitialize();
@@ -40,7 +40,7 @@ public abstract class Entity : INetSerializable {
 	public Guid EntityId { get; set; }
 	public virtual Vector2 Position { get; set; }
 
-	public virtual void Update(Single deltaTime) {
+	public virtual void Update(float deltaTime) {
 	}
 
 	public virtual void Initialize(IDictionary properties) {
@@ -54,8 +54,8 @@ public abstract class Entity : INetSerializable {
 	}
 
 	public virtual T AddComponent<T>(IDictionary properties = null) where T : BaseEntityComponent, new() {
-		Guid componentId = Guid.NewGuid();
-		T component = new T {
+		var componentId = Guid.NewGuid();
+		var component = new T {
 			Owner = this,
 			ComponentId = componentId
 		};
@@ -70,17 +70,17 @@ public abstract class Entity : INetSerializable {
 		return this._entityComponents.FirstOrDefault(c => c.ComponentId == componentGuid);
 	}
 
-	public virtual Boolean RemoveComponentById(Guid componentId) {
+	public virtual bool RemoveComponentById(Guid componentId) {
 		return this.RemoveComponent(component => component.ComponentId == componentId) > 0;
 	}
 
-	public virtual Boolean RemoveComponentByType<T>() where T : BaseEntityComponent {
+	public virtual bool RemoveComponentByType<T>() where T : BaseEntityComponent {
 		return this.RemoveComponent(component => component is T) > 0;
 	}
 
-	public virtual Int32 RemoveComponent(Func<BaseEntityComponent, Boolean> predicate) {
-		Int32 removed = 0;
-		for (Int32 i = 0; i < this._entityComponents.Count;) {
+	public virtual int RemoveComponent(Func<BaseEntityComponent, bool> predicate) {
+		var removed = 0;
+		for (var i = 0; i < this._entityComponents.Count;) {
 			if (predicate(this._entityComponents[i])) {
 				this._entityComponents.RemoveAt(i);
 				removed++;

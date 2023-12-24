@@ -5,10 +5,10 @@ using LiteNetLib.Utils;
 namespace DungeonCrawler.Core.Items;
 
 public class HealthPotion : Item {
-	public Single Amount { get; set; } = 100f;
-	public Single Duration { get; set; } = 3f;
+	public float Amount { get; set; } = 100f;
+	public float Duration { get; set; } = 3f;
 
-	public override String Name { get; set; } = "Potion of Healing";
+	public override string Name { get; set; } = "Potion of Healing";
 
 	public override void Serialize(NetDataWriter writer) {
 		base.Serialize(writer);

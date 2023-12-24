@@ -9,7 +9,7 @@ public static class GameManager {
 	public static PlayerEntity localPlayer;
 	public static List<ClientBaseTile> tiles = [];
 	public static TileSize tileSize;
-	public static Camera2D camera = new Camera2D { zoom = 1f };
+	public static Camera2D camera = new() { zoom = 1f };
 	public static AssetHandler<Texture> TextureHandler { get; set; }
 	public static AssetHandler<Image> ImageHandler { get; set; }
 
@@ -22,13 +22,13 @@ public static class GameManager {
 	}
 
 	public static void RemoveEntity(Guid entityId) {
-		if (_entities.Remove(entityId, out Entity entity)) {
+		if (_entities.Remove(entityId, out var entity)) {
 			entity.OnDestroy();
 		}
 	}
 
-	public static void Update(Single deltaTime) {
-		foreach (Entity entity in GameManager._entities.Values) {
+	public static void Update(float deltaTime) {
+		foreach (var entity in GameManager._entities.Values) {
 			entity.Update(deltaTime);
 		}
 
@@ -43,12 +43,12 @@ public static class GameManager {
 
 	public static void Draw() {
 		BeginMode2D(camera);
-		foreach (ClientBaseTile tile in GameManager.tiles) {
+		foreach (var tile in GameManager.tiles) {
 			tile.Draw();
 		}
 
-		foreach (Entity entity in _entities.Values) {
-			BaseRenderer renderer = entity.GetComponent<BaseRenderer>();
+		foreach (var entity in _entities.Values) {
+			var renderer = entity.GetComponent<BaseRenderer>();
 			renderer?.Draw();
 		}
 

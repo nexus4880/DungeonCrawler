@@ -5,6 +5,6 @@ namespace DungeonCrawler.Core;
 public record UserPacketEventArgs(
 		NetPeer Peer,
 		NetPacketReader PacketReader,
-		Byte Channel,
+		byte Channel,
 		DeliveryMethod DeliveryMethod) {
 }

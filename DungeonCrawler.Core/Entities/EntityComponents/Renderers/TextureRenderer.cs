@@ -5,7 +5,7 @@ using LiteNetLib.Utils;
 namespace DungeonCrawler.Core.Entities.EntityComponents.Renderers;
 
 public abstract class TextureRenderer : BaseRenderer {
-	public String TexturePath { get; set; }
+	public string TexturePath { get; set; }
 
 	public override void Deserialize(NetDataReader reader) {
 		base.Deserialize(reader);
@@ -14,7 +14,7 @@ public abstract class TextureRenderer : BaseRenderer {
 
 	public override void Initialize(IDictionary properties) {
 		base.Initialize(properties);
-		this.TexturePath = properties.GetValueAsOrThrow<String>("TexturePath");
+		this.TexturePath = properties.GetValueAsOrThrow<string>("TexturePath");
 	}
 
 	public override void Serialize(NetDataWriter writer) {

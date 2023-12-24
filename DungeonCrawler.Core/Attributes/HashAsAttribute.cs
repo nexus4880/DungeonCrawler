@@ -2,9 +2,9 @@ namespace DungeonCrawler.Core.Attributes;
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false, Inherited = false)]
 public class HashAsAttribute : Attribute {
-	public String Value { get; }
+	public string Value { get; }
 
-	public HashAsAttribute(String value) {
+	public HashAsAttribute(string value) {
 		this.Value = value;
 	}
 

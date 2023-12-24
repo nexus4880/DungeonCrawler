@@ -5,11 +5,11 @@ using LiteNetLib.Utils;
 namespace DungeonCrawler.Core.Entities.EntityComponents;
 
 public class HealthComponent : BaseEntityComponent {
-	public Single Value { get; set; }
+	public float Value { get; set; }
 
 	public override void Initialize(IDictionary properties) {
 		base.Initialize(properties);
-		this.Value = properties.GetValueAsOrThrow<Single>("Value");
+		this.Value = properties.GetValueAsOrThrow<float>("Value");
 	}
 
 	public override void Serialize(NetDataWriter writer) {

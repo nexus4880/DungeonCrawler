@@ -21,15 +21,15 @@ public class ServerPlayerEntity : ServerEntity {
 	public override void Initialize(IDictionary properties) {
 		base.Initialize(properties);
 		this.NetPeer = properties.GetValueAsOrThrow<NetPeer>("NetPeer");
-		this.AddComponent<HealthComponent>(new Hashtable { { "Value", 100f } });
-		this.AddComponent<ServerCircleRenderer>(new Hashtable {
+		_ = this.AddComponent<HealthComponent>(new Hashtable { { "Value", 100f } });
+		_ = this.AddComponent<ServerCircleRenderer>(new Hashtable {
 			{ "Radius", 16f },
 			{ "Color", 0xFFFFFFFF },
 			{ "Filled", false }
 		});
 
-		this.AddComponent<EntityAnimatorComponent<EPlayerMovementAnimations>>();
-		this.AddComponent<CircleColliderComponent>(new Hashtable {
+		_ = this.AddComponent<EntityAnimatorComponent<EPlayerMovementAnimations>>();
+		_ = this.AddComponent<CircleColliderComponent>(new Hashtable {
 			{ "Radius", 16f }
 		});
 	}
@@ -37,16 +37,16 @@ public class ServerPlayerEntity : ServerEntity {
 	public override void Update(float deltaTime) {
 		base.Update(deltaTime);
 		this.HandleMovement(deltaTime);
-		EntityAnimatorComponent<EPlayerMovementAnimations> animatorComponent = this.GetComponent<EntityAnimatorComponent<EPlayerMovementAnimations>>();
+		var animatorComponent = this.GetComponent<EntityAnimatorComponent<EPlayerMovementAnimations>>();
 		if (animatorComponent is not null) {
 			this.HandleMovementAnimation(animatorComponent);
 		}
 	}
 
 	public void HandleMovementAnimation(EntityAnimatorComponent<EPlayerMovementAnimations> animatorComponent) {
-		EPlayerMovementAnimations currentAnimation = animatorComponent.CurrentAnimation;
-		EPlayerMovementAnimations targetAnimation = EPlayerMovementAnimations.IDLE;
-		int horizontalMovement = 0;
+		var currentAnimation = animatorComponent.CurrentAnimation;
+		var targetAnimation = EPlayerMovementAnimations.IDLE;
+		var horizontalMovement = 0;
 		if (this.CurrentInputs.MoveLeft) {
 			horizontalMovement--;
 		}
@@ -55,7 +55,7 @@ public class ServerPlayerEntity : ServerEntity {
 			horizontalMovement++;
 		}
 
-		int verticalMovement = 0;
+		var verticalMovement = 0;
 		if (this.CurrentInputs.MoveUp) {
 			verticalMovement--;
 		}
@@ -68,10 +68,9 @@ public class ServerPlayerEntity : ServerEntity {
 		if (verticalMovement != 0 || horizontalMovement != 0) {
 			// This is idle right now but we are moving diagonally
 			if (verticalMovement != 0 && horizontalMovement != 0) {
-
 			}
 			else {
-				targetAnimation = verticalMovement == -1 ? EPlayerMovementAnimations.MOVE_UP : EPlayerMovementAnimations.MOVE_DOWN;
+				_ = verticalMovement == -1 ? EPlayerMovementAnimations.MOVE_UP : EPlayerMovementAnimations.MOVE_DOWN;
 
 				targetAnimation = horizontalMovement == -1 ? EPlayerMovementAnimations.MOVE_LEFT : EPlayerMovementAnimations.MOVE_RIGHT;
 			}
@@ -81,14 +80,14 @@ public class ServerPlayerEntity : ServerEntity {
 			animatorComponent.CurrentAnimation = targetAnimation;
 			this.SendUpdateComponent(animatorComponent, new Hashtable
 			{
-				{nameof(animatorComponent.CurrentAnimation), (Byte)animatorComponent.CurrentAnimation}
+				{nameof(animatorComponent.CurrentAnimation), (byte)animatorComponent.CurrentAnimation}
 			});
 		}
 	}
 
 	private void HandleMovement(float deltaTime) {
-		Vector2 movement = Vector2.Zero;
-		Vector2 currentPosition = this.Position;
+		var movement = Vector2.Zero;
+		var currentPosition = this.Position;
 		if (this.CurrentInputs.MoveLeft) {
 			movement.X -= 1f;
 		}
@@ -107,13 +106,13 @@ public class ServerPlayerEntity : ServerEntity {
 
 		if (movement != Vector2.Zero) {
 			movement *= 100f;
-			MovementSpeedBuffComponent movementSpeedBuffComponent = this.GetComponent<MovementSpeedBuffComponent>();
+			var movementSpeedBuffComponent = this.GetComponent<MovementSpeedBuffComponent>();
 			if (movementSpeedBuffComponent is not null) {
 				movement *= movementSpeedBuffComponent.Value;
 			}
 
 			// Calculate target position
-			Vector2 targetPosition = currentPosition + (movement * deltaTime);
+			var targetPosition = currentPosition + (movement * deltaTime);
 
 			float minX = GameServer.MapBounds.X;
 			float minY = GameServer.MapBounds.Y;
@@ -121,22 +120,25 @@ public class ServerPlayerEntity : ServerEntity {
 			float maxY = GameServer.MapBounds.Height;
 
 			// Ensure the target position stays within boundaries
-			float clampedX = Math.Max(minX, Math.Min(targetPosition.X, maxX));
-			float clampedY = Math.Max(minY, Math.Min(targetPosition.Y, maxY));
+			var clampedX = Math.Max(minX, Math.Min(targetPosition.X, maxX));
+			var clampedY = Math.Max(minY, Math.Min(targetPosition.Y, maxY));
 
 			if (clampedX != currentPosition.X || clampedY != currentPosition.Y) {
 				targetPosition = new Vector2(clampedX, clampedY);
 				// TODO: implement properly, this is wrong
-				BaseColliderComponent collider = this.GetComponent<BaseColliderComponent>();
+				var collider = this.GetComponent<BaseColliderComponent>();
 				if (collider is not null) {
 					BaseColliderComponent detectedCollision = null;
-					foreach (Entity entity in GameManager.EntityList.Values) {
+					foreach (var entity in GameManager.EntityList.Values) {
 						if (entity == this) {
 							continue;
 						}
 
-						BaseColliderComponent otherCollider = entity.GetComponent<BaseColliderComponent>();
-						if (otherCollider is null) { continue; }
+						var otherCollider = entity.GetComponent<BaseColliderComponent>();
+						if (otherCollider is null) {
+							continue;
+						}
+
 						if (collider.CollidesWith(otherCollider)) {
 							detectedCollision = otherCollider;
 
@@ -154,5 +156,4 @@ public class ServerPlayerEntity : ServerEntity {
 			}
 		}
 	}
-
 }

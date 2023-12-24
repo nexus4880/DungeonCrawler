@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.Specialized;
 using System.Numerics;
 using DungeonCrawler.Core.Entities;
 using DungeonCrawler.Core.Entities.EntityComponents;
@@ -17,15 +16,15 @@ public static class GameManager {
 		return GameManager.EntityList.Values.Where(entity => entity is T).Cast<T>();
 	}
 
-	public static void Update(Single deltaTime) {
-		foreach (Entity entity in GameManager.EntityList.Values) {
+	public static void Update(float deltaTime) {
+		foreach (var entity in GameManager.EntityList.Values) {
 			entity.Update(deltaTime);
 			if (entity is PlayerEntity player) {
-				foreach (DroppedLootItem droppedLootItem in GameManager.GetEntities<DroppedLootItem>()) {
+				foreach (var droppedLootItem in GameManager.GetEntities<DroppedLootItem>()) {
 					if (Vector2.Distance(droppedLootItem.Position, player.Position) < 16f) {
 						switch (droppedLootItem.Item) {
 							case InstantHealthPotion healthPotion: {
-								HealthComponent healthComponent = player.GetComponent<HealthComponent>();
+								var healthComponent = player.GetComponent<HealthComponent>();
 								if (healthComponent is null) {
 									continue;
 								}
@@ -35,7 +34,7 @@ public static class GameManager {
 								break;
 							}
 							case SpeedPotion speedPotion: {
-								MovementSpeedBuffComponent movementSpeedBuffComponent = player.GetComponent<MovementSpeedBuffComponent>();
+								var movementSpeedBuffComponent = player.GetComponent<MovementSpeedBuffComponent>();
 								if (movementSpeedBuffComponent is not null) {
 									if (speedPotion.Multiplier > movementSpeedBuffComponent.Value) {
 										movementSpeedBuffComponent.Value = speedPotion.Multiplier;
@@ -46,7 +45,13 @@ public static class GameManager {
 									}
 								}
 								else {
-									player.AddComponent<MovementSpeedBuffComponent>(new ListDictionary { { "Multiplier", speedPotion.Multiplier }, { "Duration", speedPotion.Duration } });
+									_ = player.AddComponent<MovementSpeedBuffComponent>(
+										new Hashtable
+										{
+											{ "Multiplier", speedPotion.Multiplier },
+											{ "Duration", speedPotion.Duration }
+										}
+									);
 								}
 
 								break;
@@ -62,19 +67,19 @@ public static class GameManager {
 	}
 
 	public static T CreateEntity<T>(IDictionary properties) where T : Entity, new() {
-		Guid entityId = Guid.NewGuid();
-		T entity = new T { EntityId = entityId };
+		var entityId = Guid.NewGuid();
+		var entity = new T { EntityId = entityId };
 		GameManager.EntityList[entityId] = entity;
 		entity.Initialize(properties);
 
 		return entity;
 	}
 
-	public static Boolean DestroyEntity(Guid id) {
-		Boolean removed = GameManager.EntityList.Remove(id, out Entity entity);
+	public static bool DestroyEntity(Guid id) {
+		var removed = GameManager.EntityList.Remove(id, out var entity);
 		if (removed) {
 			entity.OnDestroy();
-			NetDataWriter writer = new NetDataWriter();
+			var writer = new NetDataWriter();
 			GameServer.PacketProcessor.Write(writer, new EntityDestroyPacket { EntityId = id });
 			GameServer.NetManager.SendToAll(writer, DeliveryMethod.ReliableOrdered);
 		}

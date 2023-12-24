@@ -6,6 +6,6 @@ namespace DungeonCrawler.Server.Entities.EntityComponents.Colliders;
 
 [NetworkIgnore]
 public abstract class BaseColliderComponent : BaseEntityComponent {
-	public abstract Boolean CollidesWith(BaseColliderComponent other);
-	public abstract Boolean ContainsPoint(Vector2 point);
+	public abstract bool CollidesWith(BaseColliderComponent other);
+	public abstract bool ContainsPoint(Vector2 point);
 }
